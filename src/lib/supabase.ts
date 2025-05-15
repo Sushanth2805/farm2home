@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 // Types for our Supabase tables
 export type Profile = {
   id: string;
-  role: "farmer" | "consumer";
+  role: string; // Changed from "farmer" | "consumer" to string
   full_name: string;
   location: string;
   bio?: string;
@@ -24,7 +24,7 @@ export type Produce = {
 
 export type CartItem = {
   id: number;
-  consumer_id: string;
+  user_id: string; // Changed from consumer_id to user_id
   produce_id: number;
   quantity: number;
   created_at: string;
@@ -33,13 +33,13 @@ export type CartItem = {
 
 export type Order = {
   id: number;
-  consumer_id: string;
+  buyer_id: string; // Changed from consumer_id to buyer_id
   produce_id: number;
   quantity: number;
   total_price: number;
   status: "pending" | "processing" | "shipped" | "delivered" | "canceled";
   created_at: string;
-  consumer?: Profile;
+  buyer?: Profile; // Changed from consumer to buyer
   produce?: Produce;
 };
 

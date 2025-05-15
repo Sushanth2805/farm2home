@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { Profile } from "@/lib/supabase";
@@ -78,7 +77,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) {
       console.error("Error fetching profile:", error);
     } else if (data) {
-      setProfile(data);
+      // Use type assertion to handle the changed role type
+      setProfile(data as Profile);
     }
   };
 

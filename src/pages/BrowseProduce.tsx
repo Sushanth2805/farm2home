@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import Layout from "@/components/layout/Layout";
 import ProduceCard from "@/components/marketplace/ProduceCard";
@@ -28,8 +27,9 @@ const BrowseProduce: React.FC = () => {
           .order("created_at", { ascending: false });
 
         if (error) throw error;
-        setProduces(data || []);
-        setFilteredProduces(data || []);
+        // Use type assertion to handle the changed role type
+        setProduces(data as unknown as Produce[]);
+        setFilteredProduces(data as unknown as Produce[]);
       } catch (error) {
         console.error("Error fetching produces:", error);
         toast({
@@ -72,7 +72,7 @@ const BrowseProduce: React.FC = () => {
               Browse Organic Produce
             </h1>
             <p className="text-xl text-organic-700 max-w-2xl mx-auto">
-              Explore fresh, locally grown organic produce from farmers in your area.
+              Explore fresh, locally grown organic produce from local sellers.
             </p>
           </div>
 
@@ -97,7 +97,7 @@ const BrowseProduce: React.FC = () => {
               
               <div>
                 <label htmlFor="location" className="text-sm font-medium text-organic-700 mb-1 block">
-                  Filter by Farmer Location
+                  Filter by Seller Location
                 </label>
                 <Input
                   id="location"

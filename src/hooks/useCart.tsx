@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect } from "react";
 import { supabase, CartItem, Produce } from "@/lib/supabase";
 import { useAuth } from "./useAuth";
@@ -52,7 +51,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           *,
           produce:produce_id(*)
         `)
-        .eq("consumer_id", user.id);
+        .eq("user_id", user.id); // Changed from consumer_id to user_id
         
       if (error) throw error;
       
@@ -87,7 +86,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           .from("cart")
           .insert([
             {
-              consumer_id: user.id,
+              user_id: user.id, // Changed from consumer_id to user_id
               produce_id: produceId,
               quantity: quantity,
               created_at: new Date().toISOString(),
@@ -110,7 +109,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           ...cartItems,
           {
             id: Date.now(), // Temporary ID until we fetch the cart again
-            consumer_id: user.id,
+            user_id: user.id, // Changed from consumer_id to user_id
             produce_id: produceId,
             quantity: quantity,
             created_at: new Date().toISOString(),
@@ -207,7 +206,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase
         .from("cart")
         .delete()
-        .eq("consumer_id", user.id);
+        .eq("user_id", user.id); // Changed from consumer_id to user_id
         
       if (error) throw error;
       
@@ -246,7 +245,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         
         const { error } = await supabase.from("orders").insert([
           {
-            consumer_id: user.id,
+            buyer_id: user.id, // Changed from consumer_id to buyer_id
             produce_id: item.produce_id,
             quantity: item.quantity,
             total_price: (item.produce.price || 0) * item.quantity,
