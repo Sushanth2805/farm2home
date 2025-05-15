@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,20 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Custom colors for our organic marketplace
+				organic: {
+					50: '#F2FCE9',
+					100: '#E3F7D4',
+					200: '#C7F0AA',
+					300: '#AAE380',
+					400: '#8ED655',
+					500: '#72C92B',
+					600: '#5BA122',
+					700: '#43791A',
+					800: '#2C5011',
+					900: '#162809',
+					950: '#0B1404',
 				}
 			},
 			borderRadius: {
