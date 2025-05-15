@@ -100,6 +100,7 @@ export type Database = {
           farmer_id: string
           id: number
           image_url: string | null
+          location: string | null
           name: string
           price: number
         }
@@ -109,6 +110,7 @@ export type Database = {
           farmer_id: string
           id?: number
           image_url?: string | null
+          location?: string | null
           name: string
           price: number
         }
@@ -118,6 +120,7 @@ export type Database = {
           farmer_id?: string
           id?: number
           image_url?: string | null
+          location?: string | null
           name?: string
           price?: number
         }
