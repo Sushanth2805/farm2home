@@ -1,7 +1,6 @@
 
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
-import type { Profile } from "@/lib/supabase";
 import { toast } from "sonner";
 
 interface UseAuthMethodsProps {
@@ -17,26 +16,28 @@ export function useAuthMethods({ setIsLoading, fetchProfile }: UseAuthMethodsPro
     setIsLoading(true);
     
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error, data } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
       if (error) {
-        toast("Login failed", {
+        toast.error("Login failed", {
           description: error.message,
         });
+        throw error;
       } else {
-        toast("Welcome back!", {
-          description: "You have successfully signed in.",
-        });
-        navigate("/profile");
+        // Use timeout to avoid triggering navigate too early
+        setTimeout(() => {
+          toast.success("Welcome back!", {
+            description: "You have successfully signed in.",
+          });
+          navigate("/profile");
+        }, 100);
       }
     } catch (error: any) {
       console.error("Error signing in:", error);
-      toast("Login failed", {
-        description: error.message || "An error occurred during login",
-      });
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -77,11 +78,11 @@ export function useAuthMethods({ setIsLoading, fetchProfile }: UseAuthMethodsPro
 
         if (profileError) {
           console.error("Error creating profile:", profileError);
-          toast("Profile creation failed", {
+          toast.error("Profile creation failed", {
             description: "Your account was created but we couldn't set up your profile.",
           });
         } else {
-          toast("Account created!", {
+          toast.success("Account created!", {
             description: "Your account has been created successfully.",
           });
           navigate("/profile");
@@ -89,9 +90,10 @@ export function useAuthMethods({ setIsLoading, fetchProfile }: UseAuthMethodsPro
       }
     } catch (error: any) {
       console.error("Error signing up:", error);
-      toast("Signup failed", {
+      toast.error("Signup failed", {
         description: error.message || "An error occurred during signup",
       });
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -105,20 +107,22 @@ export function useAuthMethods({ setIsLoading, fetchProfile }: UseAuthMethodsPro
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin
+          redirectTo: window.location.origin + '/profile',
+          queryParams: {
+            prompt: 'select_account'
+          }
         }
       });
 
       if (error) {
-        toast("Login failed", {
+        toast.error("Login failed", {
           description: error.message,
         });
+        throw error;
       }
     } catch (error: any) {
       console.error("Error signing in with Google:", error);
-      toast("Login failed", {
-        description: error.message || "An error occurred during login",
-      });
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -130,15 +134,16 @@ export function useAuthMethods({ setIsLoading, fetchProfile }: UseAuthMethodsPro
     
     try {
       await supabase.auth.signOut();
-      toast("Logged out", {
+      toast.success("Logged out", {
         description: "You have been successfully logged out.",
       });
       navigate("/");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error signing out:", error);
-      toast("Error", {
+      toast.error("Error", {
         description: "There was a problem signing out.",
       });
+      throw error;
     } finally {
       setIsLoading(false);
     }

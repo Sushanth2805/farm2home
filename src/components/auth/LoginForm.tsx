@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const loginSchema = z.object({
   email: z.string().email({
@@ -41,15 +42,42 @@ const LoginForm: React.FC = () => {
     },
   });
 
+  // Reset form state when component unmounts
+  useEffect(() => {
+    return () => {
+      setAuthLoading(false);
+    };
+  }, []);
+
   const onSubmit = async (data: LoginFormValues) => {
-    setAuthLoading(true);
-    await signIn(data.email, data.password);
-    setAuthLoading(false);
+    try {
+      setAuthLoading(true);
+      await signIn(data.email, data.password);
+    } catch (error) {
+      console.error("Login error:", error);
+      toast("Login failed", {
+        description: "Please check your credentials and try again",
+      });
+    } finally {
+      setAuthLoading(false);
+    }
   };
 
   const handleGoogleSignIn = async () => {
-    await signInWithGoogle();
+    try {
+      setAuthLoading(true);
+      await signInWithGoogle();
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+      toast("Google sign-in failed", {
+        description: "Please try again later",
+      });
+    } finally {
+      setAuthLoading(false);
+    }
   };
+
+  const isSubmitting = authLoading || isLoading;
 
   return (
     <div>
@@ -72,6 +100,8 @@ const LoginForm: React.FC = () => {
                   <Input
                     placeholder="you@example.com"
                     type="email"
+                    disabled={isSubmitting}
+                    autoComplete="email"
                     {...field}
                     className="organic-input"
                   />
@@ -91,6 +121,8 @@ const LoginForm: React.FC = () => {
                   <Input
                     placeholder="Password"
                     type="password"
+                    disabled={isSubmitting}
+                    autoComplete="current-password"
                     {...field}
                     className="organic-input"
                   />
@@ -103,9 +135,9 @@ const LoginForm: React.FC = () => {
           <Button
             type="submit"
             className="w-full bg-organic-500 hover:bg-organic-600"
-            disabled={authLoading || isLoading}
+            disabled={isSubmitting}
           >
-            {authLoading || isLoading ? (
+            {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Signing in...
@@ -131,7 +163,7 @@ const LoginForm: React.FC = () => {
         variant="outline"
         className="w-full mb-4"
         onClick={handleGoogleSignIn}
-        disabled={isLoading}
+        disabled={isSubmitting}
       >
         <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
           <path
@@ -151,7 +183,14 @@ const LoginForm: React.FC = () => {
             fill="#EA4335"
           />
         </svg>
-        Sign in with Google
+        {isSubmitting && authLoading ? (
+          <>
+            <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+            Connecting...
+          </>
+        ) : (
+          "Sign in with Google"
+        )}
       </Button>
 
       <div className="text-center mt-6">

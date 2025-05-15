@@ -14,6 +14,7 @@ export function useAuthState() {
   // Fetch user profile
   const fetchProfile = async (userId: string) => {
     try {
+      setIsLoading(true);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -29,6 +30,8 @@ export function useAuthState() {
     } catch (error) {
       console.error('Error fetching profile:', error);
       setProfile(null);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -36,19 +39,21 @@ export function useAuthState() {
   useEffect(() => {
     // First set up the auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        
-        // Handle auth events
-        if (event === 'SIGNED_IN' && currentSession?.user) {
-          setIsLoading(true);
-          await fetchProfile(currentSession.user.id);
-          setIsLoading(false);
-        } else if (event === 'SIGNED_OUT') {
-          setProfile(null);
-          setUserRole(null);
-        }
+      (event, currentSession) => {
+        // Use setTimeout to prevent potential auth flow deadlocks
+        setTimeout(() => {
+          setSession(currentSession);
+          setUser(currentSession?.user ?? null);
+          
+          // Handle auth events
+          if (event === 'SIGNED_IN' && currentSession?.user) {
+            fetchProfile(currentSession.user.id);
+          } else if (event === 'SIGNED_OUT') {
+            setProfile(null);
+            setUserRole(null);
+            setIsLoading(false);
+          }
+        }, 0);
       }
     );
 
@@ -57,16 +62,18 @@ export function useAuthState() {
       setIsLoading(true);
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
+        
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
 
         // If there's a user, fetch their profile
         if (currentSession?.user) {
           await fetchProfile(currentSession.user.id);
+        } else {
+          setIsLoading(false);
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
-      } finally {
         setIsLoading(false);
       }
     };

@@ -1,8 +1,10 @@
-import { useEffect, useContext } from "react";
+
+import { useEffect } from "react";
 import { AuthContext } from "./auth/authContext";
 import { useAuthState } from "./auth/useAuthState";
 import { useAuthMethods } from "./auth/useAuthMethods";
 import { useProfileMethods } from "./auth/useProfileMethods";
+import { toast } from "sonner";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Get authentication state
@@ -39,6 +41,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     fetchProfile 
   });
 
+  // Global error handler for authentication issues
+  useEffect(() => {
+    const handleAuthError = (event: ErrorEvent) => {
+      if (event.error?.message?.includes('authentication') || 
+          event.error?.message?.includes('auth') || 
+          event.error?.message?.includes('supabase')) {
+        console.error('Auth error caught:', event.error);
+        toast('Authentication error', {
+          description: 'Please try signing in again',
+        });
+      }
+    };
+
+    window.addEventListener('error', handleAuthError);
+    return () => window.removeEventListener('error', handleAuthError);
+  }, []);
+
   const value = {
     session,
     user,
@@ -64,3 +83,6 @@ export const useAuth = () => {
   }
   return context;
 };
+
+// Add missing import
+import { useContext } from "react";
