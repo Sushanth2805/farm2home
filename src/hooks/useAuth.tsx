@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [userRole, setUserRole] = useState<string | null>(null); // Add userRole state
+  const [userRole, setUserRole] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();  // This hook must be used inside a Router
 
@@ -151,7 +151,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (authData.user) {
-        // Create profile entry - now including role field
+        // Create profile entry - using one of the allowed role values
         const { error: profileError } = await supabase
           .from("profiles")
           .insert({
@@ -159,7 +159,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             full_name: fullName,
             location,
             bio: "",
-            role: "user", // Default role for all users
+            role: "user", // This matches our constraint
             created_at: new Date().toISOString()
           });
 
