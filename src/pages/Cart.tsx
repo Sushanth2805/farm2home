@@ -1,27 +1,13 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import Layout from "@/components/layout/Layout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/useCart";
-import { toast } from "sonner";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Minus, Plus, Trash2 } from "lucide-react";
+import EmptyCart from "@/components/cart/EmptyCart";
+import CartTable from "@/components/cart/CartTable";
+import CartSummary from "@/components/cart/CartSummary";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -63,7 +49,7 @@ const Cart: React.FC = () => {
     } catch (error) {
       console.error("Error during checkout:", error);
       toast("Checkout failed", {
-        description: "There was a problem processing your order",
+        description: "There was a problem processing your order"
       });
     } finally {
       setIsCheckingOut(false);
@@ -91,109 +77,21 @@ const Cart: React.FC = () => {
                   <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-organic-500"></div>
                 </div>
               ) : cartItems.length === 0 ? (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Your cart is empty</CardTitle>
-                    <CardDescription>
-                      Browse our selection of fresh organic produce and start adding items to your cart.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardFooter>
-                    <Button
-                      className="bg-organic-500 hover:bg-organic-600"
-                      onClick={() => navigate("/browse")}
-                    >
-                      Browse Produce
-                    </Button>
-                  </CardFooter>
-                </Card>
+                <EmptyCart />
               ) : (
                 <>
-                  <div className="bg-white shadow rounded-lg overflow-hidden mb-6">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Product</TableHead>
-                          <TableHead>Price</TableHead>
-                          <TableHead>Quantity</TableHead>
-                          <TableHead>Subtotal</TableHead>
-                          <TableHead></TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {cartItems.map((item) => (
-                          <TableRow key={item.id}>
-                            <TableCell className="font-medium">
-                              <div className="flex items-center">
-                                {item.produce?.image_url && (
-                                  <div className="w-12 h-12 mr-3 rounded overflow-hidden">
-                                    <img
-                                      src={item.produce.image_url}
-                                      alt={item.produce?.name}
-                                      className="w-full h-full object-cover"
-                                    />
-                                  </div>
-                                )}
-                                <div>
-                                  <p className="font-semibold">{item.produce?.name}</p>
-                                  <p className="text-sm text-organic-600">
-                                    from {item.produce?.farmer?.full_name || "Unknown Farmer"}
-                                  </p>
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell>${item.produce?.price.toFixed(2)}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center space-x-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-8 w-8 p-0"
-                                  onClick={() => handleDecrementQuantity(item.id, item.quantity)}
-                                >
-                                  <Minus className="h-3 w-3" />
-                                </Button>
-                                <span>{item.quantity}</span>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-8 w-8 p-0"
-                                  onClick={() => handleIncrementQuantity(item.id, item.quantity)}
-                                >
-                                  <Plus className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                            <TableCell className="font-semibold">
-                              ${((item.produce?.price || 0) * item.quantity).toFixed(2)}
-                            </TableCell>
-                            <TableCell>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-organic-700 hover:text-red-600"
-                                onClick={() => removeFromCart(item.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
+                  <CartTable
+                    cartItems={cartItems}
+                    onIncrementQuantity={handleIncrementQuantity}
+                    onDecrementQuantity={handleDecrementQuantity}
+                    onRemoveItem={removeFromCart}
+                  />
 
-                  <div className="bg-white shadow rounded-lg p-6">
-                    <div className="flex justify-between items-center mb-4 text-lg">
-                      <span className="font-semibold">Total:</span>
-                      <span className="font-bold text-xl">${totalPrice.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-end">
-                      <Button className="bg-organic-500 hover:bg-organic-600" onClick={handleCheckout}>
-                        Place Order
-                      </Button>
-                    </div>
-                  </div>
+                  <CartSummary
+                    totalPrice={totalPrice}
+                    onCheckout={handleCheckout}
+                    isCheckingOut={isCheckingOut}
+                  />
                 </>
               )}
             </div>
