@@ -1,11 +1,10 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/useCart";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import {
   Table,
   TableBody,
@@ -63,10 +62,8 @@ const Cart: React.FC = () => {
       }
     } catch (error) {
       console.error("Error during checkout:", error);
-      toast({
-        title: "Checkout failed",
+      toast("Checkout failed", {
         description: "There was a problem processing your order",
-        variant: "destructive",
       });
     } finally {
       setIsCheckingOut(false);
