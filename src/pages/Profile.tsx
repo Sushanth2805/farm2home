@@ -125,24 +125,28 @@ const Profile: React.FC = () => {
       setIsLoading(true);
       
       try {
-        let query = supabase.from("orders").select(`
-          *,
-          produce:produce_id(*)
-        `);
+        let query;
         
         if (userRole === "farmer") {
           // Farmers see orders for their produce
-          query = query.in("produce_id", userProduce.map(p => p.id));
+          // Limit the fields selected to prevent deep type instantiation
+          query = supabase.from("orders").select(`
+            id, quantity, total_price, status, created_at, produce_id, consumer_id,
+            produce:produce_id(id, name, price, description)
+          `).in("produce_id", userProduce.map(p => p.id));
         } else {
-          // Consumers/users see their own orders - using buyer_id field
-          query = query.eq("buyer_id", profile.id);
+          // Consumers/users see their own orders - using consumer_id field for now
+          query = supabase.from("orders").select(`
+            id, quantity, total_price, status, created_at, produce_id, consumer_id,
+            produce:produce_id(id, name, price, description)
+          `).eq("consumer_id", profile.id);
         }
         
         const { data, error } = await query;
         
         if (error) throw error;
         
-        // Cast the data to match our Order type
+        // Use a type assertion to avoid circular reference issues
         setOrders(data as unknown as Order[]);
       } catch (error) {
         console.error("Error fetching orders:", error);
@@ -461,7 +465,9 @@ const Profile: React.FC = () => {
                               <TableCell className="font-medium">{order.id}</TableCell>
                               {userRole === "farmer" && (
                                 <TableCell>
-                                  {order.buyer?.full_name || "Unknown"}
+                                  {/* Handle the buyer/consumer display here without referencing the type */}
+                                  {/* Display just the consumer ID for now, which we'll need to fix later */}
+                                  {order.buyer_id || order.consumer_id || "Unknown"}
                                 </TableCell>
                               )}
                               <TableCell>

@@ -46,16 +46,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     
     try {
+      // Breaking the circular reference by using a simpler type here
       const { data, error } = await supabase
         .from("cart")
         .select(`
           *,
-          produce:produce_id(*)
+          produce:produce_id(id, name, price, image_url, description, farmer_id)
         `)
-        .eq("user_id", user.id);
+        .eq("consumer_id", user.id);
         
       if (error) throw error;
       
+      // Use a type assertion to ensure TypeScript knows what we're dealing with
       setCartItems(data as unknown as CartItem[]);
     } catch (error) {
       console.error("Error fetching cart items:", error);
@@ -83,12 +85,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         await updateQuantity(existingItem.id, existingItem.quantity + quantity);
       } else {
         // Add a new item to the cart
-        // Use type casting to handle column name mismatch
         const { error } = await supabase
           .from("cart")
           .insert({
-            // Use consumer_id for the database, but we know it's user_id in our app
-            consumer_id: user.id,
+            consumer_id: user.id, // Using consumer_id which matches the database column name
             produce_id: produceId,
             quantity: quantity,
             created_at: new Date().toISOString(),
@@ -242,11 +242,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     
     try {
       // Start a transaction by creating a batch of orders
-      const orderPromises = cartItems.map(async (item) => {
-        if (!item.produce) return;
+      for (const item of cartItems) {
+        if (!item.produce) continue;
         
         const { error } = await supabase.from("orders").insert({
-          // Use consumer_id for database
           consumer_id: user.id,
           produce_id: item.produce_id,
           quantity: item.quantity,
@@ -256,10 +255,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         });
         
         if (error) throw error;
-      });
-      
-      // Wait for all orders to be created
-      await Promise.all(orderPromises);
+      }
       
       // Clear the cart after successful order creation
       await clearCart();

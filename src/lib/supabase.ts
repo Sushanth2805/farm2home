@@ -24,7 +24,8 @@ export type Produce = {
 
 export type CartItem = {
   id: number;
-  user_id: string; // Changed from consumer_id
+  user_id: string; // for frontend usage
+  consumer_id?: string; // for db compatibility
   produce_id: number;
   quantity: number;
   created_at: string;
@@ -33,13 +34,15 @@ export type CartItem = {
 
 export type Order = {
   id: number;
-  buyer_id: string; // Changed from consumer_id
+  buyer_id?: string; // for frontend usage
+  consumer_id?: string; // for db compatibility
   produce_id: number;
   quantity: number;
   total_price: number;
   status: "pending" | "processing" | "shipped" | "delivered" | "canceled";
   created_at: string;
-  buyer?: Profile; // Changed from consumer
+  buyer?: Profile; // for frontend usage
+  consumer?: Profile; // for db compatibility
   produce?: Produce;
 };
 
