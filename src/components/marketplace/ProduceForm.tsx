@@ -207,7 +207,7 @@ const ProduceForm: React.FC<ProduceFormProps> = ({
               <FormControl>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-organic-700">
-                    $
+                    ₹
                   </span>
                   <Input 
                     type="number" 
