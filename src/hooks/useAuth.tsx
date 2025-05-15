@@ -30,7 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [userRole, setUserRole] = useState<string | null>(null); // Add userRole state
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const navigate = useNavigate();  // This hook must be used inside a Router
 
   // Initialize authentication state
   useEffect(() => {
