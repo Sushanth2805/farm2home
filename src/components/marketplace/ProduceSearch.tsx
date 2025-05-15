@@ -56,7 +56,8 @@ const ProduceSearch: React.FC<ProduceSearchProps> = ({
                 <SelectValue placeholder="All locations" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All locations</SelectItem>
+                {/* Fix: Use "all" instead of empty string for the "All locations" option */}
+                <SelectItem value="all">All locations</SelectItem>
                 {metroCities.map((city) => (
                   <SelectItem key={city} value={city}>
                     {city}
@@ -72,7 +73,7 @@ const ProduceSearch: React.FC<ProduceSearchProps> = ({
             className="w-full md:w-auto bg-organic-500 hover:bg-organic-600"
             onClick={() => {
               onSearchChange("");
-              onLocationChange("");
+              onLocationChange("all"); // Updated to use "all" instead of empty string
             }}
           >
             <Filter className="h-4 w-4 mr-2" />

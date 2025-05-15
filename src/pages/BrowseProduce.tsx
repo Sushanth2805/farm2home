@@ -29,7 +29,7 @@ const BrowseProduce: React.FC = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   
   // Get initial location from user profile if available
-  const initialLocation = profile?.location ? profile.location.split(',')[0].trim() : '';
+  const initialLocation = profile?.location ? profile.location.split(',')[0].trim() : 'all';
   
   const { 
     filteredProduces,
@@ -43,7 +43,7 @@ const BrowseProduce: React.FC = () => {
 
   // Use user location if available
   useEffect(() => {
-    if (profile?.location && !locationFilter && metroCities.length > 0) {
+    if (profile?.location && locationFilter === 'all' && metroCities.length > 0) {
       const userCity = profile.location.split(',')[0].trim();
       if (metroCities.includes(userCity)) {
         setLocationFilter(userCity);

@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { Produce } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 
-export const useProduce = (initialLocation: string = '') => {
+export const useProduce = (initialLocation: string = 'all') => {
   const [produces, setProduces] = useState<Produce[]>([]);
   const [filteredProduces, setFilteredProduces] = useState<Produce[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -78,7 +78,7 @@ export const useProduce = (initialLocation: string = '') => {
     const filtered = produces.filter(produce => {
       const nameMatch = produce.name.toLowerCase().includes(query);
       const descriptionMatch = produce.description.toLowerCase().includes(query);
-      const locationMatch = !location || 
+      const locationMatch = location === 'all' || 
         (produce.location && produce.location.toLowerCase().includes(location));
       
       return (nameMatch || descriptionMatch) && locationMatch;
