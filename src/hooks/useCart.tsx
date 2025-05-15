@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "./useAuth";
@@ -7,12 +6,14 @@ import { Produce, CartItem } from "@/lib/supabase";
 
 interface CartContextType {
   cartItems: CartItem[];
-  cartCount: number; // Add this property
+  cartCount: number;
   isLoading: boolean;
+  totalPrice: number;
   addToCart: (produce: Produce, quantity: number) => Promise<void>;
   removeFromCart: (cartItemId: number) => Promise<void>;
   updateQuantity: (cartItemId: number, quantity: number) => Promise<void>;
   clearCart: () => Promise<void>;
+  placeOrder: () => Promise<boolean>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -22,7 +23,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const { user, isLoggedIn } = useAuth();
   const { toast } = useToast();
-  const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0); // Calculate cartCount
+  const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0);
+  
+  // Calculate total price from cart items
+  const totalPrice = cartItems.reduce((total, item) => {
+    return total + ((item.produce?.price || 0) * item.quantity);
+  }, 0);
 
   // Load cart items when user logs in
   useEffect(() => {
@@ -236,15 +242,70 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Add placeOrder function
+  const placeOrder = async (): Promise<boolean> => {
+    if (!user) return false;
+    
+    setIsLoading(true);
+    
+    try {
+      // Create orders for each item in the cart
+      const orderPromises = cartItems.map(item => {
+        return supabase
+          .from("orders")
+          .insert({
+            consumer_id: user.id,
+            produce_id: item.produce_id,
+            quantity: item.quantity,
+            total_price: (item.produce?.price || 0) * item.quantity,
+            status: "pending",
+            created_at: new Date().toISOString()
+          });
+      });
+      
+      // Wait for all orders to be created
+      const results = await Promise.all(orderPromises);
+      
+      // Check if any errors occurred
+      const hasErrors = results.some(result => result.error);
+      
+      if (hasErrors) {
+        throw new Error("Failed to create one or more orders");
+      }
+      
+      // Clear the cart after successful order placement
+      await clearCart();
+      
+      toast({
+        title: "Order placed!",
+        description: "Your order has been placed successfully",
+      });
+      
+      return true;
+    } catch (error) {
+      console.error("Error placing order:", error);
+      toast({
+        title: "Error",
+        description: "Failed to place order",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <CartContext.Provider value={{
       cartItems,
       cartCount,
       isLoading,
+      totalPrice,
       addToCart,
       removeFromCart,
       updateQuantity,
       clearCart,
+      placeOrder,
     }}>
       {children}
     </CartContext.Provider>

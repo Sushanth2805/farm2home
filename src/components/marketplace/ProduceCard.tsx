@@ -26,7 +26,7 @@ const ProduceCard: React.FC<ProduceCardProps> = ({ produce }) => {
       return;
     }
 
-    await addToCart(produce.id);
+    await addToCart(produce, 1); // Fixed to pass both produce and quantity
   };
 
   return (

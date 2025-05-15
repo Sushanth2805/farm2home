@@ -234,6 +234,16 @@ const Profile: React.FC = () => {
     }
   };
 
+  // Fix the issue with displaying consumer_id instead of buyer_id
+  const displayCustomerId = (order: Order) => {
+    return order.consumer_id || "Unknown"; 
+  };
+
+  // When handling produce items, make sure to use location from profile if not in produce
+  const getProduceLocation = (produce: Produce, profileLocation: string = "") => {
+    return produce.location || profileLocation || "";
+  };
+
   return (
     <ProtectedRoute>
       <Layout>
@@ -477,7 +487,7 @@ const Profile: React.FC = () => {
                                 <TableCell>
                                   {/* Handle the buyer/consumer display here without referencing the type */}
                                   {/* Display just the consumer ID for now, which we'll need to fix later */}
-                                  {order.buyer_id || order.consumer_id || "Unknown"}
+                                  {displayCustomerId(order)}
                                 </TableCell>
                               )}
                               <TableCell>
