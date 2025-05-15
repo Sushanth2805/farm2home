@@ -7,7 +7,7 @@ import { toast } from "sonner";
 interface UseProfileMethodsProps {
   user: User | null;
   setIsLoading: (loading: boolean) => void;
-  setProfile: (profile: Profile | null) => void;
+  setProfile: React.Dispatch<React.SetStateAction<Profile | null>>;
   fetchProfile: (userId: string) => Promise<void>;
 }
 
@@ -35,7 +35,7 @@ export function useProfileMethods({
       }
 
       // Update the local profile state
-      setProfile((prev) => (prev ? { ...prev, ...data } : null));
+      setProfile((prev) => prev ? { ...prev, ...data } : null);
       
       toast("Profile updated", {
         description: "Your profile has been updated successfully.",

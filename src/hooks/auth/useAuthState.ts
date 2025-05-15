@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Dispatch, SetStateAction } from "react";
 import { supabase } from "@/lib/supabase";
 import type { Profile } from "@/lib/supabase";
 import { Session, User } from "@supabase/supabase-js";

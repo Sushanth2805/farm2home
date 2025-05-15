@@ -1,5 +1,4 @@
-
-import { useEffect } from "react";
+import { useEffect, useContext } from "react";
 import { AuthContext } from "./auth/authContext";
 import { useAuthState } from "./auth/useAuthState";
 import { useAuthMethods } from "./auth/useAuthMethods";
@@ -65,6 +64,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
-// Import at the top
-import { useContext } from "react";
