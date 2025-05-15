@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect } from "react";
 import { supabase, CartItem, Produce } from "@/lib/supabase";
 import { useAuth } from "./useAuth";
@@ -51,11 +52,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           *,
           produce:produce_id(*)
         `)
-        .eq("user_id", user.id); // Changed from consumer_id to user_id
+        .eq("user_id", user.id);
         
       if (error) throw error;
       
-      setCartItems(data || []);
+      setCartItems(data as unknown as CartItem[]);
     } catch (error) {
       console.error("Error fetching cart items:", error);
       toast({
@@ -86,7 +87,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           .from("cart")
           .insert([
             {
-              user_id: user.id, // Changed from consumer_id to user_id
+              user_id: user.id,
               produce_id: produceId,
               quantity: quantity,
               created_at: new Date().toISOString(),
@@ -109,7 +110,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           ...cartItems,
           {
             id: Date.now(), // Temporary ID until we fetch the cart again
-            user_id: user.id, // Changed from consumer_id to user_id
+            user_id: user.id,
             produce_id: produceId,
             quantity: quantity,
             created_at: new Date().toISOString(),
@@ -245,7 +246,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         
         const { error } = await supabase.from("orders").insert([
           {
-            buyer_id: user.id, // Changed from consumer_id to buyer_id
+            buyer_id: user.id,
             produce_id: item.produce_id,
             quantity: item.quantity,
             total_price: (item.produce.price || 0) * item.quantity,

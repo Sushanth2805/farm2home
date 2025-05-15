@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import Layout from "@/components/layout/Layout";
 import ProduceCard from "@/components/marketplace/ProduceCard";
@@ -27,7 +28,6 @@ const BrowseProduce: React.FC = () => {
           .order("created_at", { ascending: false });
 
         if (error) throw error;
-        // Use type assertion to handle the changed role type
         setProduces(data as unknown as Produce[]);
         setFilteredProduces(data as unknown as Produce[]);
       } catch (error) {
