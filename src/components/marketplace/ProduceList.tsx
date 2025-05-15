@@ -2,20 +2,38 @@
 import React from "react";
 import { Produce } from "@/lib/supabase";
 import ProduceCard from "@/components/marketplace/ProduceCard";
+import { motion } from "framer-motion";
 
 interface ProduceListProps {
   produces: Produce[];
   isLoading: boolean;
   searchQuery: string;
   locationFilter: string;
+  viewMode?: "grid" | "list";
 }
 
 const ProduceList: React.FC<ProduceListProps> = ({ 
   produces, 
   isLoading, 
   searchQuery,
-  locationFilter 
+  locationFilter,
+  viewMode = "grid"
 }) => {
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05
+      }
+    }
+  };
+
+  const item = {
+    hidden: { y: 20, opacity: 0 },
+    show: { y: 0, opacity: 1 }
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center py-12">
@@ -38,11 +56,21 @@ const ProduceList: React.FC<ProduceListProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <motion.div 
+      variants={container}
+      initial="hidden"
+      animate="show"
+      className={viewMode === "grid" 
+        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" 
+        : "flex flex-col gap-4"
+      }
+    >
       {produces.map((produce) => (
-        <ProduceCard key={produce.id} produce={produce} />
+        <motion.div key={produce.id} variants={item}>
+          <ProduceCard produce={produce} displayMode={viewMode} />
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   );
 };
 

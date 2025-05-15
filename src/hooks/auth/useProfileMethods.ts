@@ -3,11 +3,12 @@ import { supabase } from "@/lib/supabase";
 import type { Profile } from "@/lib/supabase";
 import { User } from "@supabase/supabase-js";
 import { toast } from "sonner";
+import { Dispatch, SetStateAction } from "react";
 
 interface UseProfileMethodsProps {
   user: User | null;
   setIsLoading: (loading: boolean) => void;
-  setProfile: React.Dispatch<React.SetStateAction<Profile | null>>;
+  setProfile: Dispatch<SetStateAction<Profile | null>>;
   fetchProfile: (userId: string) => Promise<void>;
 }
 

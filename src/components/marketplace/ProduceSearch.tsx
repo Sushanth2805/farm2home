@@ -8,7 +8,8 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { Search, MapPin } from "lucide-react";
+import { Search, MapPin, Filter } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface ProduceSearchProps {
   searchQuery: string;
@@ -26,9 +27,9 @@ const ProduceSearch: React.FC<ProduceSearchProps> = ({
   onLocationChange
 }) => {
   return (
-    <div className="bg-white shadow-md rounded-lg p-6 mb-8 border border-organic-100">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
+    <div className="bg-white shadow-md rounded-lg p-6 border border-organic-100">
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex-1">
           <label htmlFor="search" className="text-sm font-medium text-organic-700 mb-1 block">
             Search Produce
           </label>
@@ -44,12 +45,12 @@ const ProduceSearch: React.FC<ProduceSearchProps> = ({
           </div>
         </div>
         
-        <div>
+        <div className="md:w-1/3">
           <label className="text-sm font-medium text-organic-700 mb-1 block">
             Filter by Location
           </label>
           <div className="relative">
-            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-organic-500 pointer-events-none" />
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-organic-500 pointer-events-none z-10" />
             <Select value={locationFilter} onValueChange={onLocationChange}>
               <SelectTrigger className="organic-input pl-9">
                 <SelectValue placeholder="All locations" />
@@ -64,6 +65,19 @@ const ProduceSearch: React.FC<ProduceSearchProps> = ({
               </SelectContent>
             </Select>
           </div>
+        </div>
+
+        <div className="md:w-auto md:self-end">
+          <Button 
+            className="w-full md:w-auto bg-organic-500 hover:bg-organic-600"
+            onClick={() => {
+              onSearchChange("");
+              onLocationChange("");
+            }}
+          >
+            <Filter className="h-4 w-4 mr-2" />
+            Reset Filters
+          </Button>
         </div>
       </div>
     </div>

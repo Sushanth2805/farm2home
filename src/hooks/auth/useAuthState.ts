@@ -8,71 +8,76 @@ export function useAuthState() {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
 
-  // Initialize authentication state
+  // Fetch user profile
+  const fetchProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      setProfile(data as Profile);
+      setUserRole(data?.role || null);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      setProfile(null);
+    }
+  };
+
+  // Check for authentication status on mount
   useEffect(() => {
-    const initAuth = async () => {
-      setIsLoading(true);
-      
-      try {
-        // Get initial session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    // First set up the auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, currentSession) => {
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
         
-        if (sessionError) {
-          console.error("Error getting session:", sessionError);
-        } else if (session) {
-          setSession(session);
-          setUser(session.user);
-          await fetchProfile(session.user.id);
+        // Handle auth events
+        if (event === 'SIGNED_IN' && currentSession?.user) {
+          setIsLoading(true);
+          await fetchProfile(currentSession.user.id);
+          setIsLoading(false);
+        } else if (event === 'SIGNED_OUT') {
+          setProfile(null);
+          setUserRole(null);
         }
-        
-        // Set up auth state listener
-        const { data: { subscription } } = await supabase.auth.onAuthStateChange(
-          async (event, session) => {
-            setSession(session);
-            setUser(session?.user ?? null);
-            
-            if (session?.user) {
-              await fetchProfile(session.user.id);
-            } else {
-              setProfile(null);
-              setUserRole(null);
-            }
-          }
-        );
-        
-        return () => {
-          subscription.unsubscribe();
-        };
+      }
+    );
+
+    // Then check for existing session
+    const initializeAuth = async () => {
+      setIsLoading(true);
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+
+        // If there's a user, fetch their profile
+        if (currentSession?.user) {
+          await fetchProfile(currentSession.user.id);
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    initAuth();
+    initializeAuth();
+
+    // Clean up subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
-
-  // Fetch user profile from profiles table
-  const fetchProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
-
-      if (error) {
-        console.error("Error fetching profile:", error);
-      } else if (data) {
-        setProfile(data as Profile);
-        setUserRole(data.role); // Set the userRole
-      }
-    } catch (err) {
-      console.error("Unexpected error fetching profile:", err);
-    }
-  };
 
   return {
     session,
@@ -82,6 +87,6 @@ export function useAuthState() {
     userRole,
     setProfile,
     fetchProfile,
-    setIsLoading
+    setIsLoading,
   };
 }
