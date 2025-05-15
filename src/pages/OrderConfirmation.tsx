@@ -1,14 +1,27 @@
 
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const OrderConfirmation: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { refreshProfile } = useAuth();
   const { orderId } = location.state || { orderId: null };
+  
+  // Redirect to browse if accessed directly without order data
+  useEffect(() => {
+    if (!orderId) {
+      navigate('/browse');
+    }
+    
+    // Refresh profile to update orders data
+    refreshProfile();
+  }, [orderId, navigate, refreshProfile]);
 
   return (
     <ProtectedRoute requiredRole="consumer">

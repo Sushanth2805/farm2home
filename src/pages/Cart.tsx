@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -38,6 +37,7 @@ const Cart: React.FC = () => {
   const { cartItems, totalPrice, isLoading, updateQuantity, removeFromCart, placeOrder } = useCart();
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   const handleDecrementQuantity = (cartItemId: number, currentQuantity: number) => {
     if (currentQuantity > 1) {
@@ -50,7 +50,25 @@ const Cart: React.FC = () => {
   };
 
   const handleCheckout = async () => {
-    setIsOrderDialogOpen(true);
+    setIsCheckingOut(true);
+    try {
+      const success = await placeOrder();
+      if (success) {
+        // Pass orderId to the confirmation page
+        navigate('/order-confirmation', { 
+          state: { orderId: Math.floor(Math.random() * 10000) + 1000 } 
+        });
+      }
+    } catch (error) {
+      console.error("Error during checkout:", error);
+      toast({
+        title: "Checkout failed",
+        description: "There was a problem processing your order",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCheckingOut(false);
+    }
   };
 
   const confirmOrder = async () => {

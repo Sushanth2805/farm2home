@@ -29,27 +29,42 @@ const BrowseProduce: React.FC = () => {
     const fetchProduces = async () => {
       setIsLoading(true);
       try {
+        console.log("Fetching produce data...");
         const { data, error } = await supabase
           .from("produce")
           .select(`
             *,
             farmer:farmer_id(*)
-          `)
-          .order("created_at", { ascending: false });
+          `);
 
-        if (error) throw error;
-        setProduces(data as unknown as Produce[]);
-        setFilteredProduces(data as unknown as Produce[]);
+        if (error) {
+          console.error("Supabase error:", error);
+          throw error;
+        }
         
-        // Extract unique cities from produce locations
-        const cities = Array.from(
-          new Set((data as unknown as Produce[]).map(p => {
-            const location = p.location || '';
-            return location.split(',')[0].trim();
-          }))
-        ).filter(Boolean).sort();
+        console.log("Produce data fetched:", data);
         
-        setMetroCities(cities);
+        // Check if data is valid and has items
+        if (!data || data.length === 0) {
+          console.log("No produce items found");
+          setProduces([]);
+          setFilteredProduces([]);
+        } else {
+          // Set the data with proper typing
+          setProduces(data as unknown as Produce[]);
+          setFilteredProduces(data as unknown as Produce[]);
+          
+          // Extract unique cities from produce locations
+          const cities = Array.from(
+            new Set((data as unknown as Produce[]).map(p => {
+              const location = p.location || '';
+              return location.split(',')[0].trim();
+            }))
+          ).filter(Boolean).sort();
+          
+          setMetroCities(cities);
+          console.log("Cities extracted:", cities);
+        }
       } catch (error) {
         console.error("Error fetching produces:", error);
         toast({
@@ -90,7 +105,7 @@ const BrowseProduce: React.FC = () => {
         setLocationFilter(userCity);
       }
     }
-  }, [profile, metroCities]);
+  }, [profile, metroCities, locationFilter]);
 
   return (
     <Layout>
