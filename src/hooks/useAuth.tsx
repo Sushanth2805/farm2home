@@ -12,6 +12,7 @@ interface AuthContextType {
   profile: Profile | null;
   isLoggedIn: boolean;
   isLoading: boolean;
+  userRole: string | null;  // Add userRole
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, fullName: string, location: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -27,6 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [userRole, setUserRole] = useState<string | null>(null); // Add userRole state
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -57,6 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               await fetchProfile(session.user.id);
             } else {
               setProfile(null);
+              setUserRole(null);
             }
           }
         );
@@ -85,6 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error("Error fetching profile:", error);
       } else if (data) {
         setProfile(data as Profile);
+        setUserRole(data.role); // Set the userRole
       }
     } catch (err) {
       console.error("Unexpected error fetching profile:", err);
@@ -147,7 +151,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (authData.user) {
-        // Create profile entry
+        // Create profile entry - now including role field
         const { error: profileError } = await supabase
           .from("profiles")
           .insert({
@@ -155,6 +159,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             full_name: fullName,
             location,
             bio: "",
+            role: "user", // Default role for all users
             created_at: new Date().toISOString()
           });
 
@@ -259,6 +264,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Update the local profile state
       setProfile((prev) => (prev ? { ...prev, ...data } : null));
       
+      // Update userRole if role is being updated
+      if (data.role) {
+        setUserRole(data.role);
+      }
+      
       toast({
         title: "Profile updated",
         description: "Your profile has been updated successfully.",
@@ -292,6 +302,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     profile,
     isLoggedIn: !!user,
     isLoading,
+    userRole,
     signIn,
     signUp,
     signInWithGoogle,

@@ -8,6 +8,7 @@ export type Profile = {
   location: string;
   bio?: string;
   rating?: number;
+  role: string;  // Add role property
   created_at: string;
 };
 
@@ -17,7 +18,7 @@ export type Produce = {
   name: string;
   description: string;
   price: number;
-  location: string;
+  location: string; // Make sure location is included
   image_url: string | null;
   created_at: string;
   farmer?: Profile;
@@ -25,7 +26,7 @@ export type Produce = {
 
 export type CartItem = {
   id: number;
-  user_id: string;
+  consumer_id: string; // Changed from user_id to match DB
   produce_id: number;
   quantity: number;
   created_at: string;
@@ -34,13 +35,13 @@ export type CartItem = {
 
 export type Order = {
   id: number;
-  buyer_id: string;
+  consumer_id: string; // Changed from buyer_id to match DB
   produce_id: number;
   quantity: number;
   total_price: number;
   status: "pending" | "processing" | "shipped" | "delivered" | "canceled";
   created_at: string;
-  buyer?: Profile;
+  consumer?: Profile; // Changed from buyer to consumer
   produce?: Produce;
   rating?: number;
 };

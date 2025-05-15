@@ -88,10 +88,10 @@ const Profile: React.FC = () => {
     }
   }, [profile, form]);
 
-  // Fetch user's produce if they are a farmer
+  // Fetch user's produce
   useEffect(() => {
     const fetchUserProduce = async () => {
-      if (profile && userRole === "farmer") {
+      if (profile) {
         setIsLoading(true);
         try {
           const { data, error } = await supabase
@@ -100,7 +100,14 @@ const Profile: React.FC = () => {
             .eq("farmer_id", profile.id);
 
           if (error) throw error;
-          setUserProduce(data || []);
+          
+          // Ensure all required fields are present
+          const producesWithLocation = (data || []).map(item => ({
+            ...item,
+            location: item.location || profile.location || ""
+          }));
+          
+          setUserProduce(producesWithLocation as Produce[]);
         } catch (error) {
           console.error("Error fetching produce:", error);
           toast({
@@ -115,7 +122,7 @@ const Profile: React.FC = () => {
     };
 
     fetchUserProduce();
-  }, [profile, userRole]);
+  }, [profile]);
 
   // Fetch orders
   useEffect(() => {
@@ -127,18 +134,17 @@ const Profile: React.FC = () => {
       try {
         let query;
         
-        if (userRole === "farmer") {
-          // Farmers see orders for their produce
-          // Limit the fields selected to prevent deep type instantiation
+        if (userRole === "admin" || userRole === "farmer") {
+          // Farmers and admins see orders for their produce
           query = supabase.from("orders").select(`
-            id, quantity, total_price, status, created_at, produce_id, consumer_id,
-            produce:produce_id(id, name, price, description)
+            id, quantity, total_price, status, created_at, consumer_id, produce_id,
+            produce:produce_id(id, name, price, description, location)
           `).in("produce_id", userProduce.map(p => p.id));
         } else {
-          // Consumers/users see their own orders - using consumer_id field for now
+          // Regular users see their own orders
           query = supabase.from("orders").select(`
-            id, quantity, total_price, status, created_at, produce_id, consumer_id,
-            produce:produce_id(id, name, price, description)
+            id, quantity, total_price, status, created_at, consumer_id, produce_id,
+            produce:produce_id(id, name, price, description, location)
           `).eq("consumer_id", profile.id);
         }
         
@@ -146,7 +152,7 @@ const Profile: React.FC = () => {
         
         if (error) throw error;
         
-        // Use a type assertion to avoid circular reference issues
+        // Use a type assertion
         setOrders(data as unknown as Order[]);
       } catch (error) {
         console.error("Error fetching orders:", error);
@@ -160,12 +166,9 @@ const Profile: React.FC = () => {
       }
     };
 
-    // Only fetch orders if we have produce data for farmers
-    if (profile && (userRole !== "farmer" || 
-        (userRole === "farmer" && userProduce.length > 0))) {
+    // Only fetch orders if we have profile data
+    if (profile) {
       fetchOrders();
-    } else if (profile && userRole === "farmer" && userProduce.length === 0) {
-      setIsLoading(false);
     }
   }, [profile, userRole, userProduce]);
 
@@ -206,7 +209,7 @@ const Profile: React.FC = () => {
     setEditingProduceId(null);
     
     // Refresh the produce list
-    if (profile && userRole === "farmer") {
+    if (profile) {
       setIsLoading(true);
       try {
         const { data, error } = await supabase
@@ -215,7 +218,14 @@ const Profile: React.FC = () => {
           .eq("farmer_id", profile.id);
 
         if (error) throw error;
-        setUserProduce(data || []);
+        
+        // Ensure all required fields are present
+        const producesWithLocation = (data || []).map(item => ({
+          ...item,
+          location: item.location || profile.location || ""
+        }));
+        
+        setUserProduce(producesWithLocation as Produce[]);
       } catch (error) {
         console.error("Error refreshing produce:", error);
       } finally {

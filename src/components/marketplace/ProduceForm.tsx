@@ -96,7 +96,7 @@ const ProduceForm: React.FC<ProduceFormProps> = ({
         .single();
         
       if (profileError) {
-        // Profile doesn't exist, create one
+        // Profile doesn't exist, create one with role
         const { error: createProfileError } = await supabase
           .from('profiles')
           .insert({
@@ -104,6 +104,7 @@ const ProduceForm: React.FC<ProduceFormProps> = ({
             full_name: user.user_metadata?.full_name || 'Unknown Farmer',
             location: data.location,
             bio: null,
+            role: 'user', // Add default role
             created_at: new Date().toISOString()
           });
           
