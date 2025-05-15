@@ -9,7 +9,155 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      cart: {
+        Row: {
+          consumer_id: string
+          created_at: string
+          id: number
+          produce_id: number
+          quantity: number
+        }
+        Insert: {
+          consumer_id: string
+          created_at?: string
+          id?: number
+          produce_id: number
+          quantity: number
+        }
+        Update: {
+          consumer_id?: string
+          created_at?: string
+          id?: number
+          produce_id?: number
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_consumer_id_fkey"
+            columns: ["consumer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cart_produce_id_fkey"
+            columns: ["produce_id"]
+            isOneToOne: false
+            referencedRelation: "produce"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          consumer_id: string
+          created_at: string
+          id: number
+          produce_id: number
+          quantity: number
+          status: string
+          total_price: number
+        }
+        Insert: {
+          consumer_id: string
+          created_at?: string
+          id?: number
+          produce_id: number
+          quantity: number
+          status: string
+          total_price: number
+        }
+        Update: {
+          consumer_id?: string
+          created_at?: string
+          id?: number
+          produce_id?: number
+          quantity?: number
+          status?: string
+          total_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_consumer_id_fkey"
+            columns: ["consumer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_produce_id_fkey"
+            columns: ["produce_id"]
+            isOneToOne: false
+            referencedRelation: "produce"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      produce: {
+        Row: {
+          created_at: string
+          description: string
+          farmer_id: string
+          id: number
+          image_url: string | null
+          name: string
+          price: number
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          farmer_id: string
+          id?: number
+          image_url?: string | null
+          name: string
+          price: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          farmer_id?: string
+          id?: number
+          image_url?: string | null
+          name?: string
+          price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "produce_farmer_id_fkey"
+            columns: ["farmer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          bio: string | null
+          created_at: string
+          full_name: string
+          id: string
+          location: string
+          role: string
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          full_name: string
+          id: string
+          location: string
+          role: string
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          location?: string
+          role?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

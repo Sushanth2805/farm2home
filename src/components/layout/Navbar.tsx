@@ -4,17 +4,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Menu, X, ShoppingCart, User, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/hooks/useAuth";
 
-type NavbarProps = {
-  isLoggedIn: boolean;
-  userRole?: string | null;
-};
-
-const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, userRole }) => {
+const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { isLoggedIn, userRole, signOut, isLoading, profile } = useAuth();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -22,12 +18,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, userRole }) => {
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
-      toast({
-        title: "Logged out successfully",
-        description: "You have been logged out of your account",
-      });
-      navigate("/");
+      await signOut();
     } catch (error) {
       toast({
         title: "Error logging out",
@@ -74,18 +65,20 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, userRole }) => {
         {/* Auth Buttons (Desktop) */}
         <div className="hidden md:flex items-center space-x-4">
           {isLoggedIn ? (
-            <Button variant="outline" onClick={handleLogout}>
-              Logout
-            </Button>
+            <div className="flex items-center space-x-4">
+              {profile?.full_name && (
+                <span className="text-sm text-organic-700">
+                  Hi, {profile.full_name.split(" ")[0]}
+                </span>
+              )}
+              <Button variant="outline" onClick={handleLogout} disabled={isLoading}>
+                {isLoading ? "Logging out..." : "Logout"}
+              </Button>
+            </div>
           ) : (
-            <>
-              <Button variant="outline" asChild>
-                <Link to="/login">Login</Link>
-              </Button>
-              <Button className="bg-organic-500 hover:bg-organic-600" asChild>
-                <Link to="/signup">Sign Up</Link>
-              </Button>
-            </>
+            <Button className="bg-organic-500 hover:bg-organic-600" asChild>
+              <Link to="/login">Sign In with Google</Link>
+            </Button>
           )}
         </div>
 
@@ -145,25 +138,18 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, userRole }) => {
                   handleLogout();
                   toggleMenu();
                 }}
+                disabled={isLoading}
               >
-                Logout
+                {isLoading ? "Logging out..." : "Logout"}
               </Button>
             ) : (
               <div className="space-y-2 pt-2 border-t border-organic-100">
-                <Button
-                  variant="outline"
-                  className="w-full justify-center"
-                  asChild
-                  onClick={toggleMenu}
-                >
-                  <Link to="/login">Login</Link>
-                </Button>
                 <Button
                   className="bg-organic-500 hover:bg-organic-600 w-full justify-center"
                   asChild
                   onClick={toggleMenu}
                 >
-                  <Link to="/signup">Sign Up</Link>
+                  <Link to="/login">Sign In with Google</Link>
                 </Button>
               </div>
             )}

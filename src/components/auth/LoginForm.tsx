@@ -1,47 +1,15 @@
 
 import React from "react";
-import { useForm } from "react-hook-form";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
-
-const loginFormSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
-});
-
-type LoginFormValues = z.infer<typeof loginFormSchema>;
+import { FcGoogle } from "react-icons/fc";
 
 const LoginForm: React.FC = () => {
-  const { signIn, isLoading } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  
-  const from = location.state?.from || "/";
+  const { signInWithGoogle, isLoading } = useAuth();
 
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginFormSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
-
-  const onSubmit = async (data: LoginFormValues) => {
-    await signIn(data.email, data.password);
-    // Redirect is handled in useEffect within the auth provider
-    navigate(from, { replace: true });
+  const handleGoogleSignIn = async () => {
+    await signInWithGoogle();
   };
 
   return (
@@ -51,60 +19,33 @@ const LoginForm: React.FC = () => {
         <p className="text-organic-700">Log in to continue to OrganicMart</p>
       </div>
       
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="you@example.com" 
-                    {...field} 
-                    className="organic-input"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Password</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="password" 
-                    placeholder="••••••••" 
-                    {...field} 
-                    className="organic-input"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+      <div className="space-y-6">
+        <Button 
+          type="button" 
+          variant="outline"
+          className="w-full flex items-center justify-center gap-2 h-12"
+          disabled={isLoading}
+          onClick={handleGoogleSignIn}
+        >
+          <FcGoogle className="w-5 h-5" />
+          <span>{isLoading ? "Logging in..." : "Sign in with Google"}</span>
+        </Button>
 
-          <Button 
-            type="submit" 
-            className="w-full bg-organic-500 hover:bg-organic-600"
-            disabled={isLoading}
-          >
-            {isLoading ? "Logging in..." : "Login"}
-          </Button>
-        </form>
-      </Form>
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-organic-200"></div>
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="px-2 bg-white text-organic-500">OrganicMart</span>
+          </div>
+        </div>
+      </div>
 
       <div className="mt-6 text-center">
         <p className="text-organic-800">
-          Don't have an account?{" "}
-          <Link to="/signup" className="text-organic-600 hover:text-organic-700 font-medium">
-            Sign up
+          New to OrganicMart?{" "}
+          <Link to="/" className="text-organic-600 hover:text-organic-700 font-medium">
+            Go back to the homepage
           </Link>
         </p>
       </div>

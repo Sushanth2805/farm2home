@@ -12,8 +12,7 @@ interface AuthContextType {
   isLoggedIn: boolean;
   userRole: string | null;
   isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, role: string, fullName: string, location: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (data: Partial<Profile>) => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -83,14 +82,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Sign in with email and password
-  const signIn = async (email: string, password: string) => {
+  // Sign in with Google
+  const signInWithGoogle = async () => {
     setIsLoading(true);
     
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      // Clean up existing state to prevent auth conflicts
+      await cleanupAuthState();
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
       });
 
       if (error) {
@@ -99,80 +103,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           description: error.message,
           variant: "destructive",
         });
-      } else {
-        toast({
-          title: "Login successful",
-          description: "Welcome back!",
-        });
       }
-    } catch (error) {
-      console.error("Unexpected error during login:", error);
+      
+      // Note: Redirect happens automatically, so no need for additional logic here
+    } catch (error: any) {
+      console.error("Error signing in with Google:", error);
       toast({
         title: "Login failed",
-        description: "An unexpected error occurred. Please try again.",
+        description: error.message || "An error occurred during login",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Sign up with email, password, and profile information
-  const signUp = async (
-    email: string,
-    password: string,
-    role: string,
-    fullName: string,
-    location: string
-  ) => {
-    setIsLoading(true);
-    
-    try {
-      // 1. Create the user account
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-
-      if (authError) {
-        throw authError;
-      }
-
-      if (!authData?.user) {
-        throw new Error("User creation failed");
-      }
-
-      // 2. Create the user profile
-      const { error: profileError } = await supabase.from("profiles").insert([
-        {
-          id: authData.user.id,
-          role,
-          full_name: fullName,
-          location,
-          created_at: new Date().toISOString(),
-        },
-      ]);
-
-      if (profileError) {
-        throw profileError;
-      }
-
-      toast({
-        title: "Account created",
-        description: "Your account has been created successfully.",
-      });
-    } catch (error: any) {
-      console.error("Error during signup:", error);
-      toast({
-        title: "Signup failed",
-        description: error.message || "An error occurred during signup",
-        variant: "destructive",
-      });
-      
-      // If we created an auth account but profile failed, sign out
-      if (user) {
-        await supabase.auth.signOut();
-      }
     } finally {
       setIsLoading(false);
     }
@@ -183,12 +123,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     
     try {
+      await cleanupAuthState();
       await supabase.auth.signOut();
       setProfile(null);
       toast({
         title: "Logged out",
         description: "You have been successfully logged out.",
       });
+      window.location.href = "/"; // Force page refresh for clean state
     } catch (error) {
       console.error("Error signing out:", error);
       toast({
@@ -247,6 +189,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Helper function to clean up auth state
+  const cleanupAuthState = async () => {
+    // Remove all Supabase auth keys from localStorage
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        localStorage.removeItem(key);
+      }
+    });
+    
+    // Attempt global sign out
+    try {
+      await supabase.auth.signOut({ scope: 'global' });
+    } catch (err) {
+      // Continue even if this fails
+    }
+  };
+
   const value = {
     session,
     user,
@@ -254,8 +213,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isLoggedIn: !!user,
     userRole: profile?.role || null,
     isLoading,
-    signIn,
-    signUp,
+    signInWithGoogle,
     signOut,
     updateProfile,
     refreshProfile,
