@@ -28,6 +28,9 @@ const produceFormSchema = z.object({
   price: z.coerce.number().positive({
     message: "Price must be a positive number"
   }),
+  location: z.string().min(2, {
+    message: "Location must be at least 2 characters"
+  }),
 });
 
 type ProduceFormValues = z.infer<typeof produceFormSchema>;
@@ -44,6 +47,7 @@ const ProduceForm: React.FC<ProduceFormProps> = ({
     name: "",
     description: "",
     price: 0,
+    location: "",
   },
   onComplete,
 }) => {
@@ -65,11 +69,42 @@ const ProduceForm: React.FC<ProduceFormProps> = ({
   };
 
   const onSubmit = async (data: ProduceFormValues) => {
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "Not authenticated",
+        description: "Please sign in to add produce",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsLoading(true);
     
     try {
+      // First check if the user has a profile, which is required due to foreign key constraints
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+        
+      if (profileError) {
+        // Profile doesn't exist, create one
+        const { error: createProfileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            full_name: user.user_metadata?.full_name || 'Unknown Farmer',
+            location: data.location,
+            role: 'farmer',
+            bio: null,
+          });
+          
+        if (createProfileError) {
+          throw new Error(`Error creating profile: ${createProfileError.message}`);
+        }
+      }
+      
       let imageUrl = null;
       
       // Handle image upload if there's a selected image
@@ -103,6 +138,7 @@ const ProduceForm: React.FC<ProduceFormProps> = ({
           name: data.name,
           description: data.description,
           price: data.price,
+          location: data.location,
         };
         
         // Only update image if a new one was uploaded
@@ -132,6 +168,7 @@ const ProduceForm: React.FC<ProduceFormProps> = ({
               name: data.name,
               description: data.description,
               price: data.price,
+              location: data.location,
               image_url: imageUrl,
               created_at: new Date().toISOString(),
             },
@@ -191,6 +228,24 @@ const ProduceForm: React.FC<ProduceFormProps> = ({
                   placeholder="Describe your produce..." 
                   {...field} 
                   className="organic-input min-h-[100px]"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="location"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Location</FormLabel>
+              <FormControl>
+                <Input 
+                  placeholder="e.g., Bangalore, Karnataka" 
+                  {...field} 
+                  className="organic-input"
                 />
               </FormControl>
               <FormMessage />
