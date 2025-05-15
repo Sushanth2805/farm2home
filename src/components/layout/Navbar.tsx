@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ const Navbar: React.FC = () => {
   const { isLoggedIn, signOut } = useAuth();
   const { cartCount } = useCart();
   const { toast } = useToast();
+  const location = useLocation();
 
   const handleLogout = async () => {
     await signOut();
@@ -19,6 +20,9 @@ const Navbar: React.FC = () => {
       description: "You have been successfully logged out.",
     });
   };
+
+  // Helper function to determine if a link is active
+  const isActive = (path: string) => location.pathname === path;
 
   return (
     <header className="bg-white border-b border-organic-100">
@@ -32,20 +36,29 @@ const Navbar: React.FC = () => {
           </Link>
 
           <nav className="flex items-center space-x-6">
-            <Link to="/" className="text-organic-800 hover:text-organic-600">
+            <Link 
+              to="/" 
+              className={`transition-colors ${isActive('/') ? 'text-organic-600 font-medium' : 'text-organic-800 hover:text-organic-600'}`}
+            >
               Home
             </Link>
-            <Link to="/browse" className="text-organic-800 hover:text-organic-600">
+            <Link 
+              to="/browse" 
+              className={`transition-colors ${isActive('/browse') ? 'text-organic-600 font-medium' : 'text-organic-800 hover:text-organic-600'}`}
+            >
               Browse Produce
             </Link>
             {isLoggedIn && (
               <>
-                <Link to="/profile" className="text-organic-800 hover:text-organic-600">
+                <Link 
+                  to="/profile" 
+                  className={`transition-colors ${isActive('/profile') ? 'text-organic-600 font-medium' : 'text-organic-800 hover:text-organic-600'}`}
+                >
                   Profile
                 </Link>
                 <Link 
                   to="/sell" 
-                  className="bg-organic-500 hover:bg-organic-600 text-white px-4 py-2 rounded-md"
+                  className="bg-organic-500 hover:bg-organic-600 text-white px-4 py-2 rounded-md transition-colors"
                 >
                   Sell Produce
                 </Link>

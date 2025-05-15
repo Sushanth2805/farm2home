@@ -15,17 +15,16 @@ import {
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Filter, Grid3X3, List } from "lucide-react";
+import { Filter, Grid3X3, List, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const BrowseProduce: React.FC = () => {
-  const { profile } = useAuth();
+  const { profile, isLoading: isAuthLoading } = useAuth();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   
   // Get initial location from user profile if available
@@ -38,7 +37,8 @@ const BrowseProduce: React.FC = () => {
     setSearchQuery,
     locationFilter,
     setLocationFilter,
-    metroCities
+    metroCities,
+    refreshProduces
   } = useProduce(initialLocation);
 
   // Use user location if available
@@ -50,6 +50,20 @@ const BrowseProduce: React.FC = () => {
       }
     }
   }, [profile, metroCities, locationFilter, setLocationFilter]);
+
+  // Show loading state
+  if (isLoading && filteredProduces.length === 0) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-12 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-organic-500" />
+            <p className="text-organic-600">Loading produce listings...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -82,7 +96,7 @@ const BrowseProduce: React.FC = () => {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-semibold text-organic-900">
                 {filteredProduces.length > 0 
-                  ? `${filteredProduces.length} items found` 
+                  ? `${filteredProduces.length} ${filteredProduces.length === 1 ? 'item' : 'items'} found` 
                   : "No items found"}
               </h2>
               
@@ -116,7 +130,7 @@ const BrowseProduce: React.FC = () => {
               viewMode={viewMode}
             />
             
-            {/* Pagination (static for now) */}
+            {/* Don't show pagination if there are no items */}
             {filteredProduces.length > 0 && (
               <Pagination className="mt-8">
                 <PaginationContent>
@@ -127,19 +141,25 @@ const BrowseProduce: React.FC = () => {
                     <PaginationLink href="#" isActive>1</PaginationLink>
                   </PaginationItem>
                   <PaginationItem>
-                    <PaginationLink href="#">2</PaginationLink>
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationLink href="#">3</PaginationLink>
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                  <PaginationItem>
                     <PaginationNext href="#" />
                   </PaginationItem>
                 </PaginationContent>
               </Pagination>
+            )}
+
+            {/* Show empty state if no produces */}
+            {!isLoading && filteredProduces.length === 0 && (
+              <div className="text-center py-16 bg-gray-50 border border-gray-100 rounded-lg">
+                <h3 className="text-2xl font-semibold text-organic-800 mb-2">No produce listings found</h3>
+                <p className="text-organic-600 mb-6">
+                  {searchQuery || locationFilter !== 'all'
+                    ? "Try adjusting your search or filter criteria."
+                    : "There are no produce listings available right now."}
+                </p>
+                <Button onClick={refreshProduces}>
+                  Refresh Listings
+                </Button>
+              </div>
             )}
           </div>
         </div>

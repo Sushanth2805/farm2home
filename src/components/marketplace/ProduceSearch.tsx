@@ -38,7 +38,7 @@ const ProduceSearch: React.FC<ProduceSearchProps> = ({
             <Input
               id="search"
               placeholder="Search by name or description..."
-              className="organic-input pl-9"
+              className="pl-9"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
             />
@@ -46,17 +46,16 @@ const ProduceSearch: React.FC<ProduceSearchProps> = ({
         </div>
         
         <div className="md:w-1/3">
-          <label className="text-sm font-medium text-organic-700 mb-1 block">
+          <label htmlFor="location-filter" className="text-sm font-medium text-organic-700 mb-1 block">
             Filter by Location
           </label>
           <div className="relative">
             <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-organic-500 pointer-events-none z-10" />
             <Select value={locationFilter} onValueChange={onLocationChange}>
-              <SelectTrigger className="organic-input pl-9">
+              <SelectTrigger id="location-filter" className="pl-9">
                 <SelectValue placeholder="All locations" />
               </SelectTrigger>
               <SelectContent>
-                {/* Fix: Use "all" instead of empty string for the "All locations" option */}
                 <SelectItem value="all">All locations</SelectItem>
                 {metroCities.map((city) => (
                   <SelectItem key={city} value={city}>
@@ -73,7 +72,7 @@ const ProduceSearch: React.FC<ProduceSearchProps> = ({
             className="w-full md:w-auto bg-organic-500 hover:bg-organic-600"
             onClick={() => {
               onSearchChange("");
-              onLocationChange("all"); // Updated to use "all" instead of empty string
+              onLocationChange("all");
             }}
           >
             <Filter className="h-4 w-4 mr-2" />
