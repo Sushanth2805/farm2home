@@ -6,14 +6,14 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
 import { useToast } from "@/hooks/use-toast";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, MapPin } from "lucide-react";
 
 interface ProduceCardProps {
   produce: Produce;
 }
 
 const ProduceCard: React.FC<ProduceCardProps> = ({ produce }) => {
-  const { isLoggedIn, userRole } = useAuth();
+  const { isLoggedIn } = useAuth();
   const { addToCart, isLoading: isCartLoading } = useCart();
   const { toast } = useToast();
 
@@ -22,15 +22,6 @@ const ProduceCard: React.FC<ProduceCardProps> = ({ produce }) => {
       toast({
         title: "Please log in",
         description: "You need to be logged in to add items to your cart",
-      });
-      return;
-    }
-
-    if (userRole !== "consumer") {
-      toast({
-        title: "Action not allowed",
-        description: "Only consumers can add items to cart",
-        variant: "destructive",
       });
       return;
     }
@@ -57,20 +48,33 @@ const ProduceCard: React.FC<ProduceCardProps> = ({ produce }) => {
       <div className="p-4 flex-grow flex flex-col">
         <div className="flex-grow">
           <h3 className="text-lg font-semibold text-organic-900 mb-1">{produce.name}</h3>
-          <p className="text-organic-700 text-sm mb-2">
-            by {produce.farmer?.full_name || "Unknown Farmer"}
-          </p>
-          <p className="text-organic-600 text-sm mb-4 line-clamp-2">
+          <div className="flex items-center text-organic-700 text-sm mb-2">
+            <span>by {produce.farmer?.full_name || "Unknown Farmer"}</span>
+            {produce.farmer?.rating && (
+              <div className="ml-2 flex items-center">
+                <span className="bg-yellow-100 text-yellow-800 text-xs px-1.5 py-0.5 rounded-full">
+                  ★ {produce.farmer.rating}
+                </span>
+              </div>
+            )}
+          </div>
+          <p className="text-organic-600 text-sm mb-2 line-clamp-2">
             {produce.description}
           </p>
+          {produce.location && (
+            <div className="flex items-center text-organic-600 text-xs mb-2">
+              <MapPin className="h-3 w-3 mr-1" />
+              <span>{produce.location}</span>
+            </div>
+          )}
         </div>
         
         <div className="flex justify-between items-center mt-auto">
           <p className="text-organic-900 font-bold">
-            ${produce.price.toFixed(2)}
+            ₹{produce.price.toFixed(2)}
           </p>
           
-          {isLoggedIn && userRole === "consumer" && (
+          {isLoggedIn && (
             <Button
               variant="outline"
               className="text-organic-600 border-organic-300 hover:bg-organic-50"

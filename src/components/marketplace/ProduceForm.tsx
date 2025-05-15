@@ -1,8 +1,5 @@
 
-import React, { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -14,16 +11,21 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
+import { Produce } from "@/lib/supabase";
 
 const produceFormSchema = z.object({
-  name: z.string().min(2, { 
-    message: "Name must be at least 2 characters" 
+  name: z.string().min(2, {
+    message: "Name must be at least 2 characters"
   }),
-  description: z.string().min(10, { 
-    message: "Description must be at least 10 characters" 
+  description: z.string().min(10, {
+    message: "Description must be at least 10 characters"
   }),
   price: z.coerce.number().positive({
     message: "Price must be a positive number"
@@ -37,7 +39,7 @@ type ProduceFormValues = z.infer<typeof produceFormSchema>;
 
 interface ProduceFormProps {
   produceId?: number;
-  defaultValues?: Partial<ProduceFormValues>;
+  defaultValues?: Partial<Produce>;
   onComplete: () => void;
 }
 
@@ -51,20 +53,25 @@ const ProduceForm: React.FC<ProduceFormProps> = ({
   },
   onComplete,
 }) => {
+  const { user, profile } = useAuth();
   const { toast } = useToast();
-  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const isEditMode = !!produceId;
+  const [image, setImage] = useState<File | null>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<ProduceFormValues>({
     resolver: zodResolver(produceFormSchema),
-    defaultValues,
+    defaultValues: {
+      name: defaultValues.name || "",
+      description: defaultValues.description || "",
+      price: defaultValues.price || 0,
+      location: defaultValues.location || (profile?.location || ""),
+    },
   });
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setSelectedImage(e.target.files[0]);
+      setImage(e.target.files[0]);
     }
   };
 
@@ -96,8 +103,8 @@ const ProduceForm: React.FC<ProduceFormProps> = ({
             id: user.id,
             full_name: user.user_metadata?.full_name || 'Unknown Farmer',
             location: data.location,
-            role: 'farmer',
             bio: null,
+            created_at: new Date().toISOString()
           });
           
         if (createProfileError) {
@@ -108,33 +115,33 @@ const ProduceForm: React.FC<ProduceFormProps> = ({
       let imageUrl = null;
       
       // Handle image upload if there's a selected image
-      if (selectedImage) {
-        const fileExt = selectedImage.name.split('.').pop();
+      if (image) {
+        const fileExt = image.name.split('.').pop();
         const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
         const filePath = `${user.id}/${fileName}`;
         
-        const { error: uploadError } = await supabase.storage
+        const { error: uploadError, data: uploadData } = await supabase
+          .storage
           .from('produce-images')
-          .upload(filePath, selectedImage);
+          .upload(filePath, image);
           
         if (uploadError) {
           throw uploadError;
         }
         
-        // Get the public URL
-        const { data: urlData } = supabase.storage
-          .from('produce-images')
-          .getPublicUrl(filePath);
-          
-        if (urlData) {
-          imageUrl = urlData.publicUrl;
+        if (uploadData) {
+          const { data: { publicUrl } } = supabase
+            .storage
+            .from('produce-images')
+            .getPublicUrl(filePath);
+            
+          imageUrl = publicUrl;
         }
       }
       
-      // Save or update the produce record
-      if (isEditMode) {
+      if (produceId) {
         // Update existing produce
-        const updateData: any = {
+        const updateData = {
           name: data.name,
           description: data.description,
           price: data.price,
@@ -143,59 +150,68 @@ const ProduceForm: React.FC<ProduceFormProps> = ({
         
         // Only update image if a new one was uploaded
         if (imageUrl) {
-          updateData.image_url = imageUrl;
+          Object.assign(updateData, { image_url: imageUrl });
         }
         
-        const { error } = await supabase
+        const { error: updateError } = await supabase
           .from('produce')
           .update(updateData)
-          .eq('id', produceId)
-          .eq('farmer_id', user.id);
+          .eq('id', produceId);
           
-        if (error) throw error;
+        if (updateError) {
+          throw updateError;
+        }
         
         toast({
           title: "Produce updated",
-          description: "Your produce has been updated successfully",
+          description: "Your produce has been updated successfully.",
         });
       } else {
         // Create new produce
-        const { error } = await supabase
+        const { error: insertError } = await supabase
           .from('produce')
-          .insert([
-            {
-              farmer_id: user.id,
-              name: data.name,
-              description: data.description,
-              price: data.price,
-              location: data.location,
-              image_url: imageUrl,
-              created_at: new Date().toISOString(),
-            },
-          ]);
+          .insert({
+            farmer_id: user.id,
+            name: data.name,
+            description: data.description,
+            price: data.price,
+            location: data.location,
+            image_url: imageUrl,
+            created_at: new Date().toISOString(),
+          });
           
-        if (error) throw error;
+        if (insertError) {
+          throw insertError;
+        }
         
         toast({
           title: "Produce added",
-          description: "Your produce has been added successfully",
+          description: "Your produce has been added successfully.",
         });
       }
       
+      // Reset form
+      form.reset();
+      setImage(null);
+      if (imageInputRef.current) {
+        imageInputRef.current.value = "";
+      }
+      
+      // Call the onComplete callback
       onComplete();
       
     } catch (error: any) {
       console.error("Error saving produce:", error);
       toast({
         title: "Error",
-        description: error.message || "An error occurred while saving produce",
+        description: error.message || "Failed to save produce",
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
   };
-
+  
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -204,10 +220,10 @@ const ProduceForm: React.FC<ProduceFormProps> = ({
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Product Name</FormLabel>
+              <FormLabel>Produce Name</FormLabel>
               <FormControl>
                 <Input 
-                  placeholder="e.g., Organic Carrots" 
+                  placeholder="e.g., Organic Tomatoes" 
                   {...field} 
                   className="organic-input"
                 />
@@ -258,65 +274,62 @@ const ProduceForm: React.FC<ProduceFormProps> = ({
           name="price"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Price (per unit)</FormLabel>
+              <FormLabel>Price per unit (₹)</FormLabel>
               <FormControl>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-organic-700">
-                    ₹
-                  </span>
-                  <Input 
-                    type="number" 
-                    placeholder="0.00" 
-                    {...field}
-                    step="0.01"
-                    min="0"
-                    className="organic-input pl-8"
-                  />
-                </div>
+                <Input 
+                  type="number" 
+                  step="0.01"
+                  min="0" 
+                  {...field}
+                  className="organic-input"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
         
-        <div className="space-y-2">
-          <FormLabel htmlFor="image">Product Image</FormLabel>
-          <div className="border-2 border-dashed border-organic-200 rounded-md p-4">
-            <Input 
-              id="image"
-              type="file" 
-              accept="image/*"
-              onChange={handleImageChange}
-              className="organic-input"
-            />
-            <p className="text-sm text-organic-600 mt-2">
-              Upload a clear image of your product. Recommended size: 800x600px.
+        <div>
+          <FormLabel htmlFor="image" className="block mb-2">Upload Image</FormLabel>
+          <Input
+            id="image"
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            ref={imageInputRef}
+            className="organic-input"
+          />
+          {image && (
+            <p className="text-sm text-organic-600 mt-1">
+              Selected: {image.name}
             </p>
-          </div>
-          {selectedImage && (
-            <p className="text-sm text-organic-700">
-              Selected file: {selectedImage.name}
-            </p>
+          )}
+          {!image && defaultValues.image_url && (
+            <div className="mt-2">
+              <p className="text-sm text-organic-600 mb-2">Current Image:</p>
+              <img
+                src={defaultValues.image_url}
+                alt={defaultValues.name}
+                className="h-32 w-auto object-cover rounded-md"
+              />
+            </div>
           )}
         </div>
         
-        <div className="flex justify-end space-x-4">
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={onComplete}
-            disabled={isLoading}
-          >
-            Cancel
-          </Button>
+        <div className="flex justify-end">
           <Button 
             type="submit" 
             className="bg-organic-500 hover:bg-organic-600"
             disabled={isLoading}
           >
-            {isLoading ? 
-              (isEditMode ? "Updating..." : "Adding...") : 
-              (isEditMode ? "Update Produce" : "Add Produce")}
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {produceId ? "Updating..." : "Adding..."}
+              </>
+            ) : (
+              produceId ? "Update Produce" : "Add Produce"
+            )}
           </Button>
         </div>
       </form>

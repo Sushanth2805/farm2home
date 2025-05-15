@@ -4,10 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 // Types for our Supabase tables
 export type Profile = {
   id: string;
-  role: string; // Changed from "farmer" | "consumer" to string
   full_name: string;
   location: string;
   bio?: string;
+  rating?: number;
   created_at: string;
 };
 
@@ -17,6 +17,7 @@ export type Produce = {
   name: string;
   description: string;
   price: number;
+  location: string;
   image_url: string | null;
   created_at: string;
   farmer?: Profile;
@@ -24,8 +25,7 @@ export type Produce = {
 
 export type CartItem = {
   id: number;
-  user_id: string; // for frontend usage
-  consumer_id?: string; // for db compatibility
+  user_id: string;
   produce_id: number;
   quantity: number;
   created_at: string;
@@ -34,25 +34,41 @@ export type CartItem = {
 
 export type Order = {
   id: number;
-  buyer_id?: string; // for frontend usage
-  consumer_id?: string; // for db compatibility
+  buyer_id: string;
   produce_id: number;
   quantity: number;
   total_price: number;
   status: "pending" | "processing" | "shipped" | "delivered" | "canceled";
   created_at: string;
-  buyer?: Profile; // for frontend usage
-  consumer?: Profile; // for db compatibility
+  buyer?: Profile;
   produce?: Produce;
+  rating?: number;
 };
 
 // Re-export the supabase client for easier imports
 export { supabase };
 
-// Database configuration for RLS policies
-export const setupDatabase = async () => {
-  // This is the setup for database schemas when integrating with Supabase
-  // Your Supabase schema setup would happen in the Supabase dashboard
-  // or through migrations in a production environment
-  // This function is a placeholder to document the schema
+// Helper functions for location-based filtering
+export const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const R = 6371; // Radius of the earth in km
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const d = R * c; // Distance in km
+  return d;
+};
+
+const deg2rad = (deg: number) => {
+  return deg * (Math.PI / 180);
+};
+
+// Helper to get nearest major cities based on location string
+export const getNearestMetroCities = async (location: string) => {
+  // In a real app, this would call a geocoding API
+  // For now, we'll return some hardcoded values
+  return ["Bangalore", "Mumbai", "Delhi", "Chennai", "Hyderabad"];
 };

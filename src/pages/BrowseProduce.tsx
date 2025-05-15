@@ -3,9 +3,17 @@ import React, { useEffect, useState } from "react";
 import Layout from "@/components/layout/Layout";
 import ProduceCard from "@/components/marketplace/ProduceCard";
 import { Input } from "@/components/ui/input";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 import { supabase, Produce } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-import { Search } from "lucide-react";
+import { Search, MapPin } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const BrowseProduce: React.FC = () => {
   const [produces, setProduces] = useState<Produce[]>([]);
@@ -13,7 +21,9 @@ const BrowseProduce: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
+  const [metroCities, setMetroCities] = useState<string[]>([]);
   const { toast } = useToast();
+  const { profile } = useAuth();
 
   useEffect(() => {
     const fetchProduces = async () => {
@@ -30,6 +40,16 @@ const BrowseProduce: React.FC = () => {
         if (error) throw error;
         setProduces(data as unknown as Produce[]);
         setFilteredProduces(data as unknown as Produce[]);
+        
+        // Extract unique cities from produce locations
+        const cities = Array.from(
+          new Set((data as unknown as Produce[]).map(p => {
+            const location = p.location || '';
+            return location.split(',')[0].trim();
+          }))
+        ).filter(Boolean).sort();
+        
+        setMetroCities(cities);
       } catch (error) {
         console.error("Error fetching produces:", error);
         toast({
@@ -54,13 +74,23 @@ const BrowseProduce: React.FC = () => {
       const nameMatch = produce.name.toLowerCase().includes(query);
       const descriptionMatch = produce.description.toLowerCase().includes(query);
       const locationMatch = !location || 
-        (produce.farmer?.location.toLowerCase().includes(location));
+        (produce.location && produce.location.toLowerCase().includes(location));
       
       return (nameMatch || descriptionMatch) && locationMatch;
     });
     
     setFilteredProduces(filtered);
   }, [searchQuery, locationFilter, produces]);
+
+  // Use user location as initial filter if available
+  useEffect(() => {
+    if (profile?.location && !locationFilter) {
+      const userCity = profile.location.split(',')[0].trim();
+      if (metroCities.includes(userCity)) {
+        setLocationFilter(userCity);
+      }
+    }
+  }, [profile, metroCities]);
 
   return (
     <Layout>
@@ -72,7 +102,7 @@ const BrowseProduce: React.FC = () => {
               Browse Organic Produce
             </h1>
             <p className="text-xl text-organic-700 max-w-2xl mx-auto">
-              Explore fresh, locally grown organic produce from local sellers.
+              Explore fresh, locally grown organic produce from local sellers
             </p>
           </div>
 
@@ -96,16 +126,25 @@ const BrowseProduce: React.FC = () => {
               </div>
               
               <div>
-                <label htmlFor="location" className="text-sm font-medium text-organic-700 mb-1 block">
-                  Filter by Seller Location
+                <label className="text-sm font-medium text-organic-700 mb-1 block">
+                  Filter by Location
                 </label>
-                <Input
-                  id="location"
-                  placeholder="Enter location..."
-                  className="organic-input"
-                  value={locationFilter}
-                  onChange={(e) => setLocationFilter(e.target.value)}
-                />
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-organic-500 pointer-events-none" />
+                  <Select value={locationFilter} onValueChange={setLocationFilter}>
+                    <SelectTrigger className="organic-input pl-9">
+                      <SelectValue placeholder="All locations" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">All locations</SelectItem>
+                      {metroCities.map((city) => (
+                        <SelectItem key={city} value={city}>
+                          {city}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
           </div>

@@ -1,16 +1,19 @@
+
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { Profile } from "@/lib/supabase";
 import { useToast } from "./use-toast";
 import { Session, User } from "@supabase/supabase-js";
+import { useNavigate } from "react-router-dom";
 
 interface AuthContextType {
   session: Session | null;
   user: User | null;
   profile: Profile | null;
   isLoggedIn: boolean;
-  userRole: string | null;
   isLoading: boolean;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, fullName: string, location: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (data: Partial<Profile>) => Promise<void>;
@@ -25,42 +28,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Initialize authentication state
   useEffect(() => {
     const initAuth = async () => {
       setIsLoading(true);
       
-      // Get initial session
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) {
-        console.error("Error getting session:", sessionError);
-      } else if (session) {
-        setSession(session);
-        setUser(session.user);
-        await fetchProfile(session.user.id);
-      }
-      
-      // Set up auth state listener
-      const { data: { subscription } } = await supabase.auth.onAuthStateChange(
-        async (event, session) => {
+      try {
+        // Get initial session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error("Error getting session:", sessionError);
+        } else if (session) {
           setSession(session);
-          setUser(session?.user ?? null);
-          
-          if (session?.user) {
-            await fetchProfile(session.user.id);
-          } else {
-            setProfile(null);
-          }
+          setUser(session.user);
+          await fetchProfile(session.user.id);
         }
-      );
-      
-      setIsLoading(false);
-      
-      return () => {
-        subscription.unsubscribe();
-      };
+        
+        // Set up auth state listener
+        const { data: { subscription } } = await supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            setSession(session);
+            setUser(session?.user ?? null);
+            
+            if (session?.user) {
+              await fetchProfile(session.user.id);
+            } else {
+              setProfile(null);
+            }
+          }
+        );
+        
+        return () => {
+          subscription.unsubscribe();
+        };
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     initAuth();
@@ -68,17 +74,114 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Fetch user profile from profiles table
   const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
 
-    if (error) {
-      console.error("Error fetching profile:", error);
-    } else if (data) {
-      // Use type assertion to handle the changed role type
-      setProfile(data as Profile);
+      if (error) {
+        console.error("Error fetching profile:", error);
+      } else if (data) {
+        setProfile(data as Profile);
+      }
+    } catch (err) {
+      console.error("Unexpected error fetching profile:", err);
+    }
+  };
+
+  // Sign in with email
+  const signIn = async (email: string, password: string) => {
+    setIsLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        toast({
+          title: "Login failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully signed in.",
+        });
+        navigate("/profile");
+      }
+    } catch (error: any) {
+      console.error("Error signing in:", error);
+      toast({
+        title: "Login failed",
+        description: error.message || "An error occurred during login",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Sign up with email
+  const signUp = async (email: string, password: string, fullName: string, location: string) => {
+    setIsLoading(true);
+    
+    try {
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            location
+          }
+        }
+      });
+
+      if (authError) {
+        throw authError;
+      }
+
+      if (authData.user) {
+        // Create profile entry
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .insert({
+            id: authData.user.id,
+            full_name: fullName,
+            location,
+            bio: "",
+            created_at: new Date().toISOString()
+          });
+
+        if (profileError) {
+          console.error("Error creating profile:", profileError);
+          toast({
+            title: "Profile creation failed",
+            description: "Your account was created but we couldn't set up your profile.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Account created!",
+            description: "Your account has been created successfully.",
+          });
+          navigate("/profile");
+        }
+      }
+    } catch (error: any) {
+      console.error("Error signing up:", error);
+      toast({
+        title: "Signup failed",
+        description: error.message || "An error occurred during signup",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -87,10 +190,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     
     try {
-      // Clean up existing state to prevent auth conflicts
-      await cleanupAuthState();
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: window.location.origin
@@ -104,8 +204,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           variant: "destructive",
         });
       }
-      
-      // Note: Redirect happens automatically, so no need for additional logic here
     } catch (error: any) {
       console.error("Error signing in with Google:", error);
       toast({
@@ -118,19 +216,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Sign out - renamed from logout to signOut for consistency
+  // Sign out
   const signOut = async () => {
     setIsLoading(true);
     
     try {
-      await cleanupAuthState();
       await supabase.auth.signOut();
       setProfile(null);
       toast({
         title: "Logged out",
         description: "You have been successfully logged out.",
       });
-      window.location.href = "/"; // Force page refresh for clean state
+      navigate("/");
     } catch (error) {
       console.error("Error signing out:", error);
       toast({
@@ -189,32 +286,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Helper function to clean up auth state
-  const cleanupAuthState = async () => {
-    // Remove all Supabase auth keys from localStorage
-    Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-        localStorage.removeItem(key);
-      }
-    });
-    
-    // Attempt global sign out
-    try {
-      await supabase.auth.signOut({ scope: 'global' });
-    } catch (err) {
-      // Continue even if this fails
-    }
-  };
-
   const value = {
     session,
     user,
     profile,
     isLoggedIn: !!user,
-    userRole: profile?.role || null,
     isLoading,
+    signIn,
+    signUp,
     signInWithGoogle,
-    signOut, // Changed from logout to signOut
+    signOut,
     updateProfile,
     refreshProfile,
   };

@@ -5,11 +5,13 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import ProduceForm from "@/components/marketplace/ProduceForm";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const SellProduce: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { profile } = useAuth();
 
   const handleComplete = () => {
     toast({
@@ -35,7 +37,12 @@ const SellProduce: React.FC = () => {
               </div>
               
               <div className="bg-white rounded-lg shadow-md p-6 border border-organic-100">
-                <ProduceForm onComplete={handleComplete} />
+                <ProduceForm 
+                  onComplete={handleComplete}
+                  defaultValues={{
+                    location: profile?.location || "",
+                  }}
+                />
               </div>
             </div>
           </div>
