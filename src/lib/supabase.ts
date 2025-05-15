@@ -1,12 +1,5 @@
 
-import { createClient } from "@supabase/supabase-js";
-
-// Get the Supabase URL and anon key from environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-// Create a Supabase client instance
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import { supabase } from "@/integrations/supabase/client";
 
 // Types for our Supabase tables
 export type Profile = {
@@ -49,6 +42,9 @@ export type Order = {
   consumer?: Profile;
   produce?: Produce;
 };
+
+// Re-export the supabase client for easier imports
+export { supabase };
 
 // Database configuration for RLS policies
 export const setupDatabase = async () => {

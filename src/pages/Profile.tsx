@@ -1,12 +1,8 @@
-
-import React, { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import React, { useEffect, useState } from "react";
 import Layout from "@/components/layout/Layout";
-import ProduceForm from "@/components/marketplace/ProduceForm";
-import ProduceCard from "@/components/marketplace/ProduceCard";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -17,38 +13,15 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { supabase, Produce, Order, Profile } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { supabase } from "@/lib/supabase";
+import type { Profile as ProfileType } from "@/lib/supabase";
+import ProduceForm from "@/components/marketplace/ProduceForm";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
 const profileSchema = z.object({
   full_name: z.string().min(2, {
