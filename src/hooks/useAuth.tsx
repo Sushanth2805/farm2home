@@ -118,7 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Sign out
+  // Sign out - renamed from logout to signOut for consistency
   const signOut = async () => {
     setIsLoading(true);
     
@@ -214,7 +214,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     userRole: profile?.role || null,
     isLoading,
     signInWithGoogle,
-    signOut,
+    signOut, // Changed from logout to signOut
     updateProfile,
     refreshProfile,
   };

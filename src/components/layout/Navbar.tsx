@@ -8,12 +8,12 @@ import { ShoppingBag, Package, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Navbar: React.FC = () => {
-  const { isLoggedIn, logout } = useAuth();
+  const { isLoggedIn, signOut } = useAuth();
   const { cartCount } = useCart();
   const { toast } = useToast();
 
   const handleLogout = async () => {
-    await logout();
+    await signOut();
     toast({
       title: "Logged out",
       description: "You have been successfully logged out.",

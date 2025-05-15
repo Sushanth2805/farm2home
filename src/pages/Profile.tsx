@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import Layout from "@/components/layout/Layout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
@@ -41,6 +40,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
 import type { Profile as ProfileType, Produce, Order } from "@/lib/supabase";
 import ProduceCard from "@/components/marketplace/ProduceCard";
+import ProduceForm from "@/components/marketplace/ProduceForm";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -127,22 +127,23 @@ const Profile: React.FC = () => {
       try {
         let query = supabase.from("orders").select(`
           *,
-          produce:produce_id(*),
-          consumer:consumer_id(*)
+          produce:produce_id(*)
         `);
         
         if (userRole === "farmer") {
           // Farmers see orders for their produce
           query = query.in("produce_id", userProduce.map(p => p.id));
         } else {
-          // Consumers see their own orders
-          query = query.eq("consumer_id", profile.id);
+          // Consumers/users see their own orders - using buyer_id field
+          query = query.eq("buyer_id", profile.id);
         }
         
         const { data, error } = await query;
         
         if (error) throw error;
-        setOrders(data || []);
+        
+        // Cast the data to match our Order type
+        setOrders(data as unknown as Order[]);
       } catch (error) {
         console.error("Error fetching orders:", error);
         toast({
@@ -156,7 +157,7 @@ const Profile: React.FC = () => {
     };
 
     // Only fetch orders if we have produce data for farmers
-    if (profile && (userRole === "consumer" || 
+    if (profile && (userRole !== "farmer" || 
         (userRole === "farmer" && userProduce.length > 0))) {
       fetchOrders();
     } else if (profile && userRole === "farmer" && userProduce.length === 0) {
@@ -460,11 +461,11 @@ const Profile: React.FC = () => {
                               <TableCell className="font-medium">{order.id}</TableCell>
                               {userRole === "farmer" && (
                                 <TableCell>
-                                  {(order.consumer as Profile)?.full_name || "Unknown"}
+                                  {order.buyer?.full_name || "Unknown"}
                                 </TableCell>
                               )}
                               <TableCell>
-                                {(order.produce as Produce)?.name || "Unknown"}
+                                {order.produce?.name || "Unknown"}
                               </TableCell>
                               <TableCell>{order.quantity}</TableCell>
                               <TableCell>${order.total_price.toFixed(2)}</TableCell>

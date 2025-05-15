@@ -83,16 +83,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         await updateQuantity(existingItem.id, existingItem.quantity + quantity);
       } else {
         // Add a new item to the cart
+        // Use type casting to handle column name mismatch
         const { error } = await supabase
           .from("cart")
-          .insert([
-            {
-              user_id: user.id,
-              produce_id: produceId,
-              quantity: quantity,
-              created_at: new Date().toISOString(),
-            },
-          ]);
+          .insert({
+            // Use consumer_id for the database, but we know it's user_id in our app
+            consumer_id: user.id,
+            produce_id: produceId,
+            quantity: quantity,
+            created_at: new Date().toISOString(),
+          });
           
         if (error) throw error;
         
@@ -204,10 +204,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     
     try {
+      // Use consumer_id for database queries
       const { error } = await supabase
         .from("cart")
         .delete()
-        .eq("user_id", user.id); // Changed from consumer_id to user_id
+        .eq("consumer_id", user.id);
         
       if (error) throw error;
       
@@ -244,16 +245,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const orderPromises = cartItems.map(async (item) => {
         if (!item.produce) return;
         
-        const { error } = await supabase.from("orders").insert([
-          {
-            buyer_id: user.id,
-            produce_id: item.produce_id,
-            quantity: item.quantity,
-            total_price: (item.produce.price || 0) * item.quantity,
-            status: "pending",
-            created_at: new Date().toISOString(),
-          },
-        ]);
+        const { error } = await supabase.from("orders").insert({
+          // Use consumer_id for database
+          consumer_id: user.id,
+          produce_id: item.produce_id,
+          quantity: item.quantity,
+          total_price: (item.produce.price || 0) * item.quantity,
+          status: "pending",
+          created_at: new Date().toISOString(),
+        });
         
         if (error) throw error;
       });

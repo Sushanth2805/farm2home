@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 // Types for our Supabase tables
 export type Profile = {
   id: string;
-  role: string;
+  role: string; // Changed from "farmer" | "consumer" to string
   full_name: string;
   location: string;
   bio?: string;
@@ -17,7 +17,7 @@ export type Produce = {
   name: string;
   description: string;
   price: number;
-  image_url: string;
+  image_url: string | null;
   created_at: string;
   farmer?: Profile;
 };
