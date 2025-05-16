@@ -40,7 +40,7 @@ const Index: React.FC = () => {
       <section className="py-16 bg-white">
         <div className="container mx-auto px-6">
           <h2 className="text-3xl md:text-4xl font-bold text-organic-900 text-center mb-12">
-            Why Choose OrganicMart?
+            Why Choose Farm2Home?
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center p-6 rounded-lg">
@@ -188,7 +188,7 @@ const Index: React.FC = () => {
                 </div>
               </div>
               <p className="text-organic-700 italic">
-                "The quality of produce I get through OrganicMart is exceptional. I can taste the difference compared to supermarket options."
+                "The quality of produce I get through Farm2Home is exceptional. I can taste the difference compared to supermarket options."
               </p>
             </div>
           </div>
