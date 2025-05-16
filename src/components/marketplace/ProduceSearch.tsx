@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { Search, MapPin, Filter } from "lucide-react";
+import { Search, MapPin, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ProduceSearchProps {
@@ -26,6 +26,12 @@ const ProduceSearch: React.FC<ProduceSearchProps> = ({
   onSearchChange,
   onLocationChange
 }) => {
+  // Function to reset all filters
+  const handleResetFilters = () => {
+    onSearchChange("");
+    onLocationChange("all");
+  };
+
   return (
     <div className="bg-white shadow-md rounded-lg p-6 border border-organic-100">
       <div className="flex flex-col md:flex-row gap-4">
@@ -42,6 +48,15 @@ const ProduceSearch: React.FC<ProduceSearchProps> = ({
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
             />
+            {searchQuery && (
+              <button 
+                onClick={() => onSearchChange("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-organic-500 hover:text-organic-700"
+                aria-label="Clear search"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
         </div>
         
@@ -70,12 +85,9 @@ const ProduceSearch: React.FC<ProduceSearchProps> = ({
         <div className="md:w-auto md:self-end">
           <Button 
             className="w-full md:w-auto bg-organic-500 hover:bg-organic-600"
-            onClick={() => {
-              onSearchChange("");
-              onLocationChange("all");
-            }}
+            onClick={handleResetFilters}
           >
-            <Filter className="h-4 w-4 mr-2" />
+            <X className="h-4 w-4 mr-2" />
             Reset Filters
           </Button>
         </div>

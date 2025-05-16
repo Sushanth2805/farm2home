@@ -78,6 +78,7 @@ const ProduceList: React.FC<ProduceListProps> = ({
   // If we have produces, show them in the selected view mode
   return (
     <motion.div 
+      key={`produce-list-${searchQuery}-${locationFilter}`}
       variants={container}
       initial="hidden"
       animate="show"

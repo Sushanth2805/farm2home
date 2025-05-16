@@ -2,7 +2,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/lib/supabase";
 import { Produce } from "@/lib/supabase";
-import { useToast } from "@/hooks/use-toast";
 import { toast } from "sonner";
 
 export const useProduce = (initialLocation: string = 'all') => {
@@ -73,33 +72,51 @@ export const useProduce = (initialLocation: string = 'all') => {
     const query = searchQuery.toLowerCase().trim();
     const location = locationFilter.toLowerCase().trim();
     
-    const filtered = produces.filter(produce => {
-      const nameMatch = produce.name.toLowerCase().includes(query);
-      const descriptionMatch = produce.description && produce.description.toLowerCase().includes(query);
-      
-      // Location matching
-      const locationMatch = location === 'all' || 
-        (produce.location && produce.location.toLowerCase().includes(location));
-      
-      return (nameMatch || descriptionMatch) && locationMatch;
-    });
+    let filtered = [...produces];
+    
+    // Apply search filter if query exists
+    if (query) {
+      filtered = filtered.filter(produce => {
+        const nameMatch = produce.name.toLowerCase().includes(query);
+        const descriptionMatch = produce.description && 
+          produce.description.toLowerCase().includes(query);
+        return nameMatch || descriptionMatch;
+      });
+    }
+    
+    // Apply location filter if not 'all'
+    if (location !== 'all') {
+      filtered = filtered.filter(produce => 
+        produce.location && produce.location.toLowerCase().includes(location)
+      );
+    }
     
     setFilteredProduces(filtered);
   }, [searchQuery, locationFilter, produces]);
 
+  // Set search query with proper update to filtered produces
+  const setSearchQueryWithFilter = useCallback((query: string) => {
+    setSearchQuery(query);
+  }, []);
+
+  // Set location filter with proper update
+  const setLocationFilterWithUpdate = useCallback((location: string) => {
+    setLocationFilter(location);
+  }, []);
+
   // Function to refresh data
-  const refreshProduces = () => {
+  const refreshProduces = useCallback(() => {
     fetchProduces();
-  };
+  }, [fetchProduces]);
 
   return {
     produces,
     filteredProduces,
     isLoading,
     searchQuery,
-    setSearchQuery,
+    setSearchQuery: setSearchQueryWithFilter,
     locationFilter,
-    setLocationFilter,
+    setLocationFilter: setLocationFilterWithUpdate,
     metroCities,
     refreshProduces
   };
