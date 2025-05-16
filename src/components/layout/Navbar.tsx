@@ -8,7 +8,7 @@ import { ShoppingBag, Package, LogOut, ClipboardList, ShoppingBasket } from "luc
 import { useToast } from "@/hooks/use-toast";
 
 const Navbar: React.FC = () => {
-  const { isLoggedIn, signOut } = useAuth();
+  const { isLoggedIn, signOut, userRole } = useAuth();
   const { cartCount } = useCart();
   const { toast } = useToast();
   const location = useLocation();
@@ -23,6 +23,9 @@ const Navbar: React.FC = () => {
 
   // Helper function to determine if a link is active
   const isActive = (path: string) => location.pathname === path;
+
+  // Helper to determine if we should show the farmer menu items
+  const shouldShowFarmerItems = isLoggedIn && (userRole === "farmer" || userRole === "admin");
 
   return (
     <header className="bg-white border-b border-organic-100">
@@ -63,19 +66,23 @@ const Navbar: React.FC = () => {
                   <ClipboardList size={16} />
                   <span>My Orders</span>
                 </Link>
-                <Link 
-                  to="/profile?tab=produce"
-                  className={`transition-colors rounded-full bg-organic-50 px-3 py-1 text-organic-600 hover:bg-organic-100 flex items-center space-x-1`}
-                >
-                  <ShoppingBasket size={16} />
-                  <span>My Products</span>
-                </Link>
-                <Link 
-                  to="/sell" 
-                  className="bg-organic-500 hover:bg-organic-600 text-white px-4 py-2 rounded-md transition-colors"
-                >
-                  Sell Produce
-                </Link>
+                {shouldShowFarmerItems && (
+                  <>
+                    <Link 
+                      to="/profile?tab=produce"
+                      className={`transition-colors rounded-full bg-organic-50 px-3 py-1 text-organic-600 hover:bg-organic-100 flex items-center space-x-1`}
+                    >
+                      <ShoppingBasket size={16} />
+                      <span>My Products</span>
+                    </Link>
+                    <Link 
+                      to="/sell" 
+                      className="bg-organic-500 hover:bg-organic-600 text-white px-4 py-2 rounded-md transition-colors"
+                    >
+                      Sell Produce
+                    </Link>
+                  </>
+                )}
               </>
             )}
           </nav>
