@@ -32,7 +32,7 @@ const Navbar: React.FC = () => {
             <div className="w-8 h-8 bg-organic-500 text-white flex items-center justify-center rounded-md">
               <Package size={20} />
             </div>
-            <span className="text-xl font-bold text-organic-900">OrganicExchange</span>
+            <span className="text-xl font-bold text-organic-900">Farm2Home</span>
           </Link>
 
           <nav className="flex items-center space-x-6">
