@@ -15,11 +15,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import ProduceCard from "@/components/marketplace/ProduceCard";
 import ProduceForm from "@/components/marketplace/ProduceForm";
 import type { Produce, Profile } from "@/lib/supabase";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import { AlertTriangle } from "lucide-react";
 
 interface ProduceSectionProps {
   userProduce: Produce[];
@@ -37,11 +39,35 @@ const ProduceSection: React.FC<ProduceSectionProps> = ({
   const { toast } = useToast();
   const [isAddingProduce, setIsAddingProduce] = useState(false);
   const [editingProduceId, setEditingProduceId] = useState<number | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const handleDeleteProduce = async (id: number) => {
     if (!confirm("Are you sure you want to delete this produce?")) return;
     
+    setDeleteError(null);
+    
     try {
+      // First check if this produce is referenced in any orders
+      const { data: orderData, error: orderError } = await supabase
+        .from("orders")
+        .select("id")
+        .eq("produce_id", id)
+        .limit(1);
+        
+      if (orderError) throw orderError;
+      
+      // If we have orders using this produce, show an error
+      if (orderData && orderData.length > 0) {
+        setDeleteError("Cannot delete produce that has existing orders. This would break order history for customers.");
+        toast({
+          title: "Unable to delete",
+          description: "This produce has existing orders and cannot be deleted.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // If no orders reference this produce, proceed with deletion
       const { error } = await supabase
         .from("produce")
         .delete()
@@ -57,6 +83,7 @@ const ProduceSection: React.FC<ProduceSectionProps> = ({
       });
     } catch (error) {
       console.error("Error deleting produce:", error);
+      setDeleteError("Failed to delete produce. It may be referenced in orders or another error occurred.");
       toast({
         title: "Error",
         description: "Failed to delete produce",
@@ -92,6 +119,10 @@ const ProduceSection: React.FC<ProduceSectionProps> = ({
     }
   };
 
+  const dismissError = () => {
+    setDeleteError(null);
+  };
+
   return (
     <>
       <div className="mb-6 flex justify-between items-center">
@@ -103,6 +134,17 @@ const ProduceSection: React.FC<ProduceSectionProps> = ({
           Add New Produce
         </Button>
       </div>
+
+      {deleteError && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription className="flex justify-between items-center">
+            <span>{deleteError}</span>
+            <Button variant="outline" size="sm" onClick={dismissError}>Dismiss</Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {isLoading ? (
         <div className="flex justify-center py-12">
