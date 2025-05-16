@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag, Package, LogOut, ClipboardList, ShoppingBasket } from "lucide-react";
+import { ShoppingBag, Package, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Navbar: React.FC = () => {
@@ -55,20 +55,6 @@ const Navbar: React.FC = () => {
                   className={`transition-colors ${isActive('/profile') ? 'text-organic-600 font-medium' : 'text-organic-800 hover:text-organic-600'}`}
                 >
                   Profile
-                </Link>
-                <Link 
-                  to="/profile"
-                  className={`transition-colors rounded-full bg-organic-50 px-3 py-1 text-organic-600 hover:bg-organic-100 flex items-center space-x-1`}
-                >
-                  <ClipboardList size={16} />
-                  <span>My Orders</span>
-                </Link>
-                <Link 
-                  to="/profile?tab=produce"
-                  className={`transition-colors rounded-full bg-organic-50 px-3 py-1 text-organic-600 hover:bg-organic-100 flex items-center space-x-1`}
-                >
-                  <ShoppingBasket size={16} />
-                  <span>My Products</span>
                 </Link>
                 <Link 
                   to="/sell" 
