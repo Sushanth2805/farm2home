@@ -14,7 +14,6 @@ import SellProduce from "@/pages/SellProduce";
 import OrderConfirmation from "@/pages/OrderConfirmation";
 import NotFound from "@/pages/NotFound";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import Pricing from "@/pages/Pricing";
 
 const queryClient = new QueryClient();
 
@@ -27,7 +26,6 @@ function App() {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/browse" element={<BrowseProduce />} />
-              <Route path="/pricing" element={<Pricing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               {/* Protected routes group */}
