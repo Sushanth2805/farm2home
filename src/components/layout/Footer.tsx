@@ -12,7 +12,7 @@ const Footer: React.FC = () => {
               <div className="w-8 h-8 rounded-full bg-organic-500 flex items-center justify-center">
                 <span className="text-white font-bold text-xl">O</span>
               </div>
-              <span className="font-bold text-xl text-organic-800">OrganicMart</span>
+              <span className="font-bold text-xl text-organic-800">Farm2Home</span>
             </Link>
             <p className="mt-4 text-organic-700">
               Connecting organic farmers with health-conscious consumers. Fresh, local, and sustainable.
@@ -44,8 +44,8 @@ const Footer: React.FC = () => {
             <h3 className="font-semibold text-lg text-organic-800 mb-4">Contact</h3>
             <p className="text-organic-700">
               Have questions? <br />
-              Email: info@organicmart.com <br />
-              Phone: (123) 456-7890
+              Email: sushanth.2805@gmail.com <br />
+              Phone: 9963187161
             </p>
             <div className="mt-4 flex space-x-4">
               {/* Social media icons could go here */}
@@ -63,7 +63,7 @@ const Footer: React.FC = () => {
         </div>
 
         <div className="mt-8 pt-4 border-t border-organic-200 text-center text-organic-600 text-sm">
-          <p>© {new Date().getFullYear()} OrganicMart. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Farm2Home. All rights reserved.</p>
         </div>
       </div>
     </footer>
