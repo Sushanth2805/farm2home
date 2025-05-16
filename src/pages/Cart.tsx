@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import Layout from "@/components/layout/Layout";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { useCart } from "@/hooks/useCart";
 import EmptyCart from "@/components/cart/EmptyCart";
 import CartTable from "@/components/cart/CartTable";
@@ -65,81 +64,79 @@ const Cart: React.FC = () => {
   };
 
   return (
-    <ProtectedRoute requiredRole="consumer">
-      <Layout>
-        <section className="py-12">
-          <div className="container mx-auto px-6">
-            <div className="max-w-4xl mx-auto">
-              <h1 className="text-3xl font-bold text-organic-900 mb-8">Your Cart</h1>
+    <Layout>
+      <section className="py-12">
+        <div className="container mx-auto px-6">
+          <div className="max-w-4xl mx-auto">
+            <h1 className="text-3xl font-bold text-organic-900 mb-8">Your Cart</h1>
 
-              {isLoading ? (
-                <div className="flex justify-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-organic-500"></div>
-                </div>
-              ) : cartItems.length === 0 ? (
-                <EmptyCart />
-              ) : (
-                <>
-                  <CartTable
-                    cartItems={cartItems}
-                    onIncrementQuantity={handleIncrementQuantity}
-                    onDecrementQuantity={handleDecrementQuantity}
-                    onRemoveItem={removeFromCart}
-                  />
+            {isLoading ? (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-organic-500"></div>
+              </div>
+            ) : cartItems.length === 0 ? (
+              <EmptyCart />
+            ) : (
+              <>
+                <CartTable
+                  cartItems={cartItems}
+                  onIncrementQuantity={handleIncrementQuantity}
+                  onDecrementQuantity={handleDecrementQuantity}
+                  onRemoveItem={removeFromCart}
+                />
 
-                  <CartSummary
-                    totalPrice={totalPrice}
-                    onCheckout={handleCheckout}
-                    isCheckingOut={isCheckingOut}
-                  />
-                </>
-              )}
-            </div>
+                <CartSummary
+                  totalPrice={totalPrice}
+                  onCheckout={handleCheckout}
+                  isCheckingOut={isCheckingOut}
+                />
+              </>
+            )}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Order Confirmation Dialog */}
-        <AlertDialog open={isOrderDialogOpen} onOpenChange={setIsOrderDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Place your order</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to place this order for ${totalPrice.toFixed(2)}?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction className="bg-organic-500 hover:bg-organic-600" onClick={confirmOrder}>
-                Confirm Order
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+      {/* Order Confirmation Dialog */}
+      <AlertDialog open={isOrderDialogOpen} onOpenChange={setIsOrderDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Place your order</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to place this order for ${totalPrice.toFixed(2)}?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction className="bg-organic-500 hover:bg-organic-600" onClick={confirmOrder}>
+              Confirm Order
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-        {/* Order Success Dialog */}
-        <AlertDialog open={isConfirmationOpen} onOpenChange={setIsConfirmationOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Order Placed Successfully!</AlertDialogTitle>
-              <AlertDialogDescription>
-                Thank you for your order! The farmers have been notified and will process your order soon.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogAction
-                className="bg-organic-500 hover:bg-organic-600 w-full"
-                onClick={() => {
-                  setIsConfirmationOpen(false);
-                  navigate("/profile");
-                }}
-              >
-                View My Orders
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </Layout>
-    </ProtectedRoute>
+      {/* Order Success Dialog */}
+      <AlertDialog open={isConfirmationOpen} onOpenChange={setIsConfirmationOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Order Placed Successfully!</AlertDialogTitle>
+            <AlertDialogDescription>
+              Thank you for your order! The farmers have been notified and will process your order soon.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              className="bg-organic-500 hover:bg-organic-600 w-full"
+              onClick={() => {
+                setIsConfirmationOpen(false);
+                navigate("/profile");
+              }}
+            >
+              View My Orders
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Layout>
   );
 };
 

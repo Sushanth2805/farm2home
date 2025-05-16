@@ -16,6 +16,8 @@ interface ProduceListProps {
 const ProduceList: React.FC<ProduceListProps> = ({ 
   produces, 
   isLoading, 
+  searchQuery,
+  locationFilter,
   viewMode = "grid"
 }) => {
   const container = {
@@ -44,30 +46,53 @@ const ProduceList: React.FC<ProduceListProps> = ({
       </div>
     );
   }
-
-  // If we have produces, show them in the selected view mode
-  if (produces.length > 0) {
+  
+  // Show initial loading state when there's no data yet
+  if (isLoading && produces.length === 0) {
     return (
-      <motion.div 
-        variants={container}
-        initial="hidden"
-        animate="show"
-        className={viewMode === "grid" 
-          ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" 
-          : "flex flex-col gap-4"
-        }
-      >
-        {produces.map((produce) => (
-          <motion.div key={produce.id} variants={item}>
-            <ProduceCard produce={produce} displayMode={viewMode} />
-          </motion.div>
-        ))}
-      </motion.div>
+      <div className="flex justify-center py-12">
+        <div className="text-center">
+          <Loader2 className="h-10 w-10 animate-spin mx-auto mb-4 text-organic-500" />
+          <p className="text-organic-600 text-lg">Loading produce...</p>
+        </div>
+      </div>
     );
   }
 
-  // Return null for empty state - we'll show a message in the parent component
-  return null;
+  // Show empty state when no results match the filters
+  if (!isLoading && produces.length === 0) {
+    return (
+      <div className="bg-white rounded-lg shadow p-8 text-center">
+        <h3 className="text-xl font-medium text-organic-800 mb-2">No produce found</h3>
+        {searchQuery && (
+          <p className="text-organic-600 mb-1">No results for "{searchQuery}"</p>
+        )}
+        {locationFilter && locationFilter !== 'all' && (
+          <p className="text-organic-600 mb-1">No produce available in {locationFilter}</p>
+        )}
+        <p className="text-organic-600">Try adjusting your search or filter criteria</p>
+      </div>
+    );
+  }
+
+  // If we have produces, show them in the selected view mode
+  return (
+    <motion.div 
+      variants={container}
+      initial="hidden"
+      animate="show"
+      className={viewMode === "grid" 
+        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" 
+        : "flex flex-col gap-4"
+      }
+    >
+      {produces.map((produce) => (
+        <motion.div key={produce.id} variants={item}>
+          <ProduceCard produce={produce} displayMode={viewMode} />
+        </motion.div>
+      ))}
+    </motion.div>
+  );
 };
 
 export default ProduceList;

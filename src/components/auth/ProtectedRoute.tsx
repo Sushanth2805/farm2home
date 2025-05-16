@@ -7,18 +7,20 @@ import { useAuth } from "@/hooks/useAuth";
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRole?: "farmer" | "consumer" | "any";
+  allowUnauthenticated?: boolean;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
-  requiredRole = "any" 
+  requiredRole = "any",
+  allowUnauthenticated = false
 }) => {
   const { isLoggedIn, isLoading, userRole } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!isLoading && !isLoggedIn) {
+    if (!isLoading && !isLoggedIn && !allowUnauthenticated) {
       toast({
         title: "Authentication required",
         description: "Please log in to access this page",
@@ -37,7 +39,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         navigate("/", { replace: true });
       }
     }
-  }, [isLoading, isLoggedIn, navigate, requiredRole, userRole]);
+  }, [isLoading, isLoggedIn, navigate, requiredRole, userRole, allowUnauthenticated]);
 
   if (isLoading) {
     return (
@@ -47,8 +49,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  // If not loading and user is logged in (and has required role if specified)
-  if (isLoggedIn && (requiredRole === "any" || requiredRole === userRole)) {
+  // If not loading and either user is logged in with required role or page allows unauthenticated access
+  if ((isLoggedIn && (requiredRole === "any" || requiredRole === userRole)) || allowUnauthenticated) {
     return <>{children}</>;
   }
 
