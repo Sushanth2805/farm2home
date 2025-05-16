@@ -4,8 +4,17 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag, Package, LogOut } from "lucide-react";
+import { ShoppingBag, Package, LogOut, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import { cn } from "@/lib/utils";
 
 const Navbar: React.FC = () => {
   const { isLoggedIn, signOut, userRole } = useAuth();
@@ -48,6 +57,53 @@ const Navbar: React.FC = () => {
             >
               Browse Produce
             </Link>
+            <NavigationMenu>
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className={`transition-colors ${isActive('/pricing') ? 'text-organic-600 font-medium' : 'text-organic-800 hover:text-organic-600'}`}>
+                    <span className="flex items-center space-x-1">
+                      <DollarSign size={18} />
+                      <span>Pricing</span>
+                    </span>
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <div className="w-[450px] p-4 md:p-6">
+                      <div className="grid gap-3 grid-cols-1">
+                        <div className="row-span-3">
+                          <h3 className="font-medium leading-none mb-1.5 text-organic-800">For Farmers</h3>
+                          <p className="text-sm text-muted-foreground mb-3">Grow your business with our platform</p>
+                          <div className="bg-organic-50 p-4 rounded-md mb-4">
+                            <h4 className="font-medium text-organic-700 mb-1">One-time Onboarding Fee</h4>
+                            <p className="text-sm text-organic-600">Get access to market visibility, customer interaction tools, and logistics support.</p>
+                          </div>
+                          <div className="bg-organic-50 p-4 rounded-md">
+                            <h4 className="font-medium text-organic-700 mb-1">Premium Seller Tools</h4>
+                            <p className="text-sm text-organic-600">Monthly subscription for advanced analytics and premium selling tools.</p>
+                          </div>
+                        </div>
+                        <div className="row-span-3 mt-4">
+                          <h3 className="font-medium leading-none mb-1.5 text-organic-800">For Consumers</h3>
+                          <p className="text-sm text-muted-foreground mb-3">Enhance your shopping experience</p>
+                          <div className="bg-organic-50 p-4 rounded-md mb-4">
+                            <h4 className="font-medium text-organic-700 mb-1">Free Access</h4>
+                            <p className="text-sm text-organic-600">Access basic platform features at no cost.</p>
+                          </div>
+                          <div className="bg-organic-50 p-4 rounded-md">
+                            <h4 className="font-medium text-organic-700 mb-1">Premium Membership</h4>
+                            <p className="text-sm text-organic-600">Monthly subscription for early access, priority delivery, and quality-assured produce.</p>
+                          </div>
+                          <div className="mt-4">
+                            <Button className="w-full" asChild>
+                              <Link to="/pricing">View Full Pricing Details</Link>
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
             {isLoggedIn && (
               <>
                 <Link 
