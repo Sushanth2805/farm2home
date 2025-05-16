@@ -17,7 +17,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({
     <div className="bg-white shadow rounded-lg p-6">
       <div className="flex justify-between items-center mb-4 text-lg">
         <span className="font-semibold">Total:</span>
-        <span className="font-bold text-xl">${totalPrice.toFixed(2)}</span>
+        <span className="font-bold text-xl">₹{totalPrice.toFixed(2)}</span>
       </div>
       <div className="flex justify-end">
         <Button 

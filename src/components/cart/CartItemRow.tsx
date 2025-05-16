@@ -62,7 +62,7 @@ const CartItemRow: React.FC<CartItemRowProps> = ({
         </div>
       </TableCell>
       <TableCell className="font-semibold">
-        ${((item.produce?.price || 0) * item.quantity).toFixed(2)}
+        ₹{((item.produce?.price || 0) * item.quantity).toFixed(2)}
       </TableCell>
       <TableCell>
         <Button
