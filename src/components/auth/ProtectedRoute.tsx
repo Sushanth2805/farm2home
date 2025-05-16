@@ -1,11 +1,11 @@
 
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Outlet } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 
 interface ProtectedRouteProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   requiredRole?: "farmer" | "consumer" | "any";
   allowUnauthenticated?: boolean;
 }
@@ -51,7 +51,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // If not loading and either user is logged in with required role or page allows unauthenticated access
   if ((isLoggedIn && (requiredRole === "any" || requiredRole === userRole)) || allowUnauthenticated) {
-    return <>{children}</>;
+    return children ? <>{children}</> : <Outlet />;
   }
 
   // This should never render as the useEffect should redirect
