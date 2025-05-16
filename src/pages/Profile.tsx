@@ -25,7 +25,7 @@ const Profile: React.FC = () => {
   // Parse URL query parameters to get tab
   const queryParams = new URLSearchParams(location.search);
   const tabFromUrl = queryParams.get("tab");
-  const defaultTab = userRole === "farmer" ? (tabFromUrl || "produce") : "orders";
+  const defaultTab = tabFromUrl || "orders";
 
   // Fetch user's produce
   useEffect(() => {
@@ -126,24 +126,20 @@ const Profile: React.FC = () => {
               {/* Tabs for different sections */}
               <Tabs defaultValue={defaultTab}>
                 <TabsList className="mb-8">
-                  {userRole === "farmer" && (
-                    <TabsTrigger value="produce">My Produce</TabsTrigger>
-                  )}
+                  <TabsTrigger value="produce">My Produce</TabsTrigger>
                   <TabsTrigger value="orders">
                     {userRole === "farmer" ? "Orders for My Produce" : "My Orders"}
                   </TabsTrigger>
                 </TabsList>
 
-                {userRole === "farmer" && (
-                  <TabsContent value="produce">
-                    <ProduceSection
-                      userProduce={userProduce}
-                      setUserProduce={setUserProduce}
-                      profile={profile}
-                      isLoading={isLoading}
-                    />
-                  </TabsContent>
-                )}
+                <TabsContent value="produce">
+                  <ProduceSection
+                    userProduce={userProduce}
+                    setUserProduce={setUserProduce}
+                    profile={profile}
+                    isLoading={isLoading}
+                  />
+                </TabsContent>
 
                 <TabsContent value="orders">
                   <OrdersSection 
